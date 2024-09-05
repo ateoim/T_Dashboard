@@ -1,6 +1,6 @@
 // Define your Spotify app details
 const client_id = "e2e15c5deef14339b504d97037b8abe3"; // Replace with your Spotify Client ID
-const redirect_uri = "http://localhost/TEST_2_DASHBOARD/index.html"; // Your redirect URI
+const redirect_uri = "https://ateoim.github.io/T_Dashboard/index.html";
 const scopes =
   "user-read-recently-played user-top-read user-modify-playback-state streaming playlist-modify-public playlist-modify-private";
 let accessToken = null;
