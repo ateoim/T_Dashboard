@@ -1,249 +1,3 @@
-<<<<<<< HEAD
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tom's Webpage</title>
-    ///
-    <head>
-      <!-- ... other head elements ... -->
-      <style>
-        body {
-          font-family: "Arial", sans-serif;
-          background-color: #121212;
-          color: #fff;
-          margin: 0;
-          padding: 20px;
-          line-height: 1.6;
-        }
-        #titleP {
-          color: #247b51;
-          display: flex;
-          justify-content: center;
-        }
-        .navbar {
-          position: fixed;
-          top: 10px;
-          left: 25%;
-          width: 50%;
-          background-color: #282828;
-          padding: 10px 0;
-          z-index: 1000;
-          border-radius: 25px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        .navbar ul {
-          list-style-type: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          justify-content: space-around;
-        }
-
-        .navbar li {
-          display: inline-block;
-          padding: 5px 10px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-          border-radius: 25px;
-        }
-
-        .navbar a {
-          color: #1db954;
-          text-decoration: none;
-        }
-
-        .navbar li:hover {
-          background-color: #1db954;
-        }
-
-        .navbar li:hover a {
-          color: #fff;
-        }
-
-        .container {
-          margin-top: 70px;
-          max-width: 800px;
-          margin: 0 auto;
-          padding-left: 20px;
-          padding-right: 20px;
-        }
-
-        h1,
-        h2 {
-          color: #1db954;
-          margin-bottom: 20px;
-        }
-
-        #recentSongs,
-        #topArtists {
-          margin-bottom: 40px;
-        }
-
-        .song-item,
-        .artist-item {
-          background-color: #181818;
-          border-radius: 8px;
-          padding: 15px;
-          margin-bottom: 10px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .song-info,
-        .artist-info {
-          flex-grow: 1;
-        }
-
-        button {
-          background-color: #1db954;
-          color: #fff;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 20px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-          background-color: #1ed760;
-        }
-
-        p {
-          margin: 0;
-        }
-
-        /* ... your existing styles ... */
-
-        #playlistInvite {
-          margin-bottom: 20px;
-          text-align: center;
-        }
-
-        .invite-link {
-          display: inline-block;
-          background-color: #1db954;
-          color: white;
-          padding: 10px 20px;
-          text-decoration: none;
-          border-radius: 20px;
-          transition: background-color 0.3s ease;
-        }
-
-        .invite-link:hover {
-          background-color: #1ed760;
-        }
-
-        #playlistViewer {
-          margin-bottom: 30px;
-        }
-
-        iframe {
-          border-radius: 12px;
-        }
-
-        .footer {
-          position: fixed;
-          bottom: 10px;
-          left: 25%;
-          width: 50%;
-          background-color: #282828;
-          padding: 10px 0;
-          margin-bottom: 0;
-          border-radius: 25px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-          z-index: 1000;
-        }
-        .footer ul {
-          list-style-type: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          justify-content: space-around;
-        }
-        .footer li {
-          display: inline-block;
-          padding: 5px 10px;
-          transition: background-color 0.3s ease;
-          border-radius: 25px;
-        }
-        .footer a {
-          color: #1db954;
-          text-decoration: none;
-          cursor: pointer;
-        }
-        .footer li:hover {
-          background-color: #1db954;
-        }
-        .footer li:hover a {
-          color: #fff;
-        }
-      </style>
-    </head>
-
-    ///
-  </head>
-  <body>
-  
-    <nav class="navbar">
-      <ul>
-      <li><a href="/T_Dashboard/home.html">Home</a></li>
-       <li><a href="/T_Dashboard/fitbit.html">Fitbit Data</a></li>
-        <li><a href="/T_Dashboard/index.html">Spotify</a></li>
-      </ul>
-    </nav>
-    <h1 id="titleP"></h1>
-    <div class="container">
-      <h1>Tom's Spotify Dashboard</h1>
-
-      <h2>Recently Played</h2>
-      <div id="recentSongs"></div>
-
-      <h2>Most Listened To Artists This Month ++ Song</h2>
-      <div id="topArtists"></div>
-
-      <h1>Collaborative Spotify Playlist</h1>
-      <div id="playlistInvite">link in here</div>
-
-      <div id="playlistViewer">Embed playlist here</div>
-    </div>
-
-    <footer class="footer">
-      <ul>
-        <li>
-          <a
-            href="https://x.com/greywizardtea"
-            target="_blank"
-            rel="noopener noreferrer"
-            >X</a
-          >
-        </li>
-        <li>
-          <a
-            href="https://www.instagram.com/grywzrd/"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Instagram</a
-          >
-        </li>
-        <li>
-          <a
-            href="https://soundcloud.com/greywizardtea"
-            target="_blank"
-            rel="noopener noreferrer"
-            >SoundCloud</a
-          >
-        </li>
-      </ul>
-    </footer>
-
-    <script src="https://sdk.scdn.co/spotify-player.js"></script>
-       <script src="spotify.js"></script>
-  </body>
-</html>
-=======
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -265,21 +19,63 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <nav class="navbar">
-      <div class="nav-content">
-        <ul>
-          <li>
-            <a href="home.html"><i class="fas fa-home"></i> Home</a>
-          </li>
-          <li>
-            <a href="fitbit.html"><i class="fas fa-heartbeat"></i> Fitbit</a>
-          </li>
-          <li>
-            <a href="index.html"><i class="fab fa-spotify"></i> Spotify</a>
-          </li>
-        </ul>
+    <aside class="sidebar">
+      <!-- Main Navigation -->
+      <nav class="sidebar-nav">
+        <a href="home.html" class="sidebar-link" id="home-link">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="fitbit.html" class="sidebar-link" id="fitbit-link">
+          <i class="fas fa-heartbeat"></i>
+          <span>Fitbit</span>
+        </a>
+        <a href="index.html" class="sidebar-link active" id="spotify-link">
+          <i class="fab fa-spotify"></i>
+          <span>Spotify</span>
+        </a>
+      </nav>
+
+      <!-- Social Links -->
+      <div class="sidebar-social">
+        <a
+          href="https://x.com/greywizardtea"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fa-brands fa-x"></i>
+          <span>Twitter</span>
+        </a>
+        <a
+          href="https://www.instagram.com/grywzrd/"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-instagram"></i>
+          <span>Instagram</span>
+        </a>
+        <a
+          href="https://soundcloud.com/greywizardtea"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-soundcloud"></i>
+          <span>SoundCloud</span>
+        </a>
+        <a
+          href="https://github.com/yourusername"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-github"></i>
+          <span>GitHub</span>
+        </a>
       </div>
-    </nav>
+    </aside>
 
     <main class="container">
       <header class="page-header">
@@ -308,45 +104,22 @@
         </div>
       </div>
 
-      <!-- Content sections (hidden by default) -->
+      <!-- Content sections -->
       <div id="recentlyPlayed" class="stat-section hidden">
         <section class="music-section">
           <div class="section-header">
             <h2><i class="fas fa-history"></i> Recently Played</h2>
-            <a href="#" class="spotify-login-btn">
-              <i class="fab fa-spotify"></i> Login with Spotify
-            </a>
           </div>
-          <div id="recentSongs" class="card-grid">
-            <div class="song-item placeholder">
-              <div class="song-image"></div>
-              <div class="song-info">
-                <p>Connect Spotify to see recent tracks</p>
-              </div>
-            </div>
-          </div>
+          <div id="recentSongs" class="card-grid"></div>
         </section>
       </div>
 
       <div id="topArtists" class="stat-section hidden">
         <section class="music-section">
           <div class="section-header">
-            <h2>
-              <i class="fas fa-crown"></i> Most Listened To Artists This Month
-              ++ Song
-            </h2>
-            <a href="#" class="spotify-login-btn">
-              <i class="fab fa-spotify"></i> Login with Spotify
-            </a>
+            <h2><i class="fas fa-crown"></i> Most Listened To Artists</h2>
           </div>
-          <div id="topArtists" class="card-grid">
-            <div class="artist-item placeholder">
-              <div class="artist-image"></div>
-              <div class="artist-info">
-                <p>Connect Spotify to see top artists</p>
-              </div>
-            </div>
-          </div>
+          <div id="topArtists" class="card-grid"></div>
         </section>
       </div>
 
@@ -369,36 +142,9 @@
           </div>
 
           <div id="songSearchResults" class="search-results"></div>
-
-          <div id="playlistViewer" class="playlist-frame">
-            <iframe
-              src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg"
-              width="100%"
-              height="380"
-              frameborder="0"
-              allowtransparency="true"
-              allow="encrypted-media"
-            >
-            </iframe>
-          </div>
+          <div id="playlistViewer" class="playlist-frame"></div>
         </div>
       </div>
-
-      <section class="music-section search-section">
-        <h2><i class="fas fa-search"></i> Search Tracks</h2>
-        <div class="search-container">
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search for tracks..."
-            aria-label="Search tracks"
-          />
-          <button id="searchButton">
-            <i class="fas fa-search"></i> Search
-          </button>
-        </div>
-        <div id="searchResults" class="search-results"></div>
-      </section>
     </main>
 
     <footer class="footer">
@@ -436,101 +182,7 @@
       </div>
     </footer>
 
-    <!-- Scripts -->
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script src="spotify.js"></script>
-
-    <!-- Site functionality -->
-    <script>
-      // Dropdown toggle
-      document
-        .querySelector(".dropdown-toggle")
-        .addEventListener("click", function () {
-          this.classList.toggle("active");
-          const dropdownContent = document.querySelector(".dropdown-content");
-          dropdownContent.classList.toggle("show");
-        });
-
-      // Menu item click handlers
-      document.querySelectorAll(".menu-item").forEach((item) => {
-        item.addEventListener("click", function () {
-          // Remove active class from all menu items
-          document.querySelectorAll(".menu-item").forEach((menuItem) => {
-            menuItem.classList.remove("active");
-          });
-
-          // Add active class to clicked item
-          this.classList.add("active");
-
-          // Hide all stat sections
-          document.querySelectorAll(".stat-section").forEach((section) => {
-            section.classList.remove("visible");
-          });
-
-          // Show selected section
-          const sectionId = this.getAttribute("data-section");
-          const selectedSection = document.getElementById(sectionId);
-          selectedSection.classList.add("visible");
-        });
-      });
-
-      // Scroll animations
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("visible");
-            }
-          });
-        },
-        { threshold: 0.1 }
-      );
-
-      document.querySelectorAll(".music-section").forEach((section) => {
-        observer.observe(section);
-      });
-
-      async function displayWords() {
-        const words = await fetchWords();
-        const chunkSize = 10; // Much smaller chunks for smoother rendering
-        const totalChunks = Math.ceil(words.length / chunkSize);
-
-        // Create a document fragment for better performance
-        const fragment = document.createDocumentFragment();
-
-        for (let i = 0; i < totalChunks; i++) {
-          const chunk = words.slice(i * chunkSize, (i + 1) * chunkSize);
-
-          // Create and append words
-          chunk.forEach((word) => {
-            const div = document.createElement("div");
-            div.className = "word";
-            div.style.animationDelay = `${Math.random() * 0.3}s`; // Shorter animation delay
-            div.textContent = word;
-            fragment.appendChild(div);
-          });
-
-          // Update loading percentage
-          const progress = Math.min(
-            (((i + 1) / totalChunks) * 100).toFixed(1),
-            100
-          );
-          loadingElement.textContent = `DECODING... ${progress}%`;
-
-          // Add words to the page
-          dictionaryContent.appendChild(fragment.cloneNode(true));
-
-          // Longer delay between chunks for slower overall decoding
-          await new Promise((resolve) => setTimeout(resolve, 300)); // Increased delay between chunks
-          await new Promise((resolve) => requestAnimationFrame(resolve));
-        }
-
-        // Fade out loading text
-        loadingElement.style.opacity = "0";
-        loadingElement.style.transition = "opacity 0.3s ease";
-        setTimeout(() => (loadingElement.style.display = "none"), 300);
-      }
-    </script>
   </body>
 </html>
->>>>>>> master
