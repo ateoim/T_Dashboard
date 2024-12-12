@@ -454,28 +454,26 @@ body {
 /* Song and Artist Items */
 .song-item,
 .artist-item {
-  background: var(--nav-dark);
-  border-radius: 8px;
+  background: linear-gradient(145deg, var(--nav-dark), var(--dropdown-dark));
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  max-width: 200px;
-  margin: 0 auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .song-item:hover,
 .artist-item:hover {
-  background: var(--dropdown-dark);
-  transform: translateY(-2px);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 15px rgba(29, 185, 84, 0.2);
+  border-color: rgba(29, 185, 84, 0.3);
 }
 
 .song-info,
 .artist-info {
-  padding: 12px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(to top, var(--nav-dark) 0%, transparent 100%);
 }
 
 .song-info p,
@@ -659,8 +657,7 @@ body {
   position: relative;
   width: 100%;
   padding-top: 100%;
-  max-height: 200px;
-  background: var(--background-dark);
+  overflow: hidden;
 }
 
 .song-image img,
@@ -671,6 +668,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.song-item:hover .song-image img,
+.artist-item:hover .artist-image img {
+  transform: scale(1.05);
 }
 
 .play-button {
@@ -710,17 +713,21 @@ body {
 
 .song-title,
 .artist-name {
-  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 4px 0;
   color: var(--text-white);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
 }
 
 .song-artist,
 .top-track {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--text-grey);
   margin: 0;
+  font-weight: 500;
 }
 
 /* Card Grid Layout */
@@ -728,28 +735,214 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
-  padding: 16px;
+  padding: 24px;
+  animation: fadeIn 0.5s ease-out;
 }
 
-.song-title,
-.artist-name {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 4px 0;
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dropdown Animation */
+.dropdown-content {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-content.active {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Section Headers */
+.section-header {
+  padding: 20px 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(29, 185, 84, 0.1) 0%,
+    transparent 100%
+  );
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--text-white);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.song-artist,
-.top-track {
-  font-size: 12px;
-  color: var(--text-grey);
+.section-header h2 i {
+  color: var(--spotify-green);
+}
+
+/* Enhanced Spotify Login Button */
+.spotify-login-btn {
+  background: linear-gradient(45deg, #1db954, #1ed760);
+  border: none;
+  border-radius: 25px;
+  padding: 12px 32px;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spotify-login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(29, 185, 84, 0.4);
+  background: linear-gradient(45deg, #1ed760, #1db954);
+}
+
+.spotify-login-btn i {
+  font-size: 1.2rem;
+}
+
+/* Enhanced Play Button */
+.play-button {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--spotify-green);
+  border: none;
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8) translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.song-item:hover .play-button,
+.artist-item:hover .play-button {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.play-button:hover {
+  background: var(--spotify-green-bright);
+  transform: scale(1.1) translateY(0);
+}
+
+/* Enhanced Layout */
+.page-header {
+  position: relative;
+  padding: 40px 0;
+  margin-bottom: 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(29, 185, 84, 0.1) 0%,
+    transparent 100%
+  );
+  border-radius: 16px;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, #1db954, #1ed760);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+/* Card Grid Layout */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dropdown Animation */
+.dropdown-content {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-content.active {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Section Headers */
+.section-header {
+  padding: 20px 24px;
+  background: linear-gradient(
+    90deg,
+    rgba(29, 185, 84, 0.1) 0%,
+    transparent 100%
+  );
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-white);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header h2 i {
+  color: var(--spotify-green);
 }
 
 /* Add dropdown animation */
