@@ -177,6 +177,9 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(29, 185, 84, 0.15);
   overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .page-header::before {
@@ -524,13 +527,11 @@ body {
 /* Playlist Container */
 .playlist-container {
   width: 100%;
-  max-width: 800px;
-  margin: 30px auto;
   background: var(--gradient-dark);
   border-radius: 20px;
   padding: 30px;
+  margin-top: 30px;
   box-shadow: var(--shadow-strong);
-  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .playlist-header {
@@ -605,18 +606,27 @@ body {
 
 /* Search Results */
 .search-result-item {
-  background: var(--gradient-dark);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(
+    145deg,
+    rgba(40, 40, 40, 0.9),
+    rgba(28, 28, 28, 0.9)
+  );
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .search-result-item:hover {
   transform: translateX(4px);
-  border-color: rgba(29, 185, 84, 0.3);
-  box-shadow: var(--shadow-soft);
+  background: linear-gradient(
+    145deg,
+    rgba(45, 45, 45, 0.9),
+    rgba(32, 32, 32, 0.9)
+  );
 }
 
 .song-thumbnail {
@@ -665,7 +675,6 @@ body {
 
 /* Playlist Frame */
 .playlist-frame {
-  width: 100%;
   margin-top: 20px;
   border-radius: 12px;
   overflow: hidden;
@@ -1057,21 +1066,33 @@ body {
 /* Add these styles for search results */
 .search-results {
   margin-top: 20px;
+  background: var(--nav-dark);
+  border-radius: 12px;
+  padding: 16px;
 }
 
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 12px;
-  background: var(--nav-dark);
   border-radius: 8px;
-  margin-bottom: 10px;
-  transition: background-color 0.3s ease;
+  background: linear-gradient(
+    145deg,
+    rgba(40, 40, 40, 0.9),
+    rgba(28, 28, 28, 0.9)
+  );
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .search-result-item:hover {
-  background: var(--dropdown-dark);
+  transform: translateX(4px);
+  background: linear-gradient(
+    145deg,
+    rgba(45, 45, 45, 0.9),
+    rgba(32, 32, 32, 0.9)
+  );
 }
 
 .no-results {
@@ -1447,6 +1468,9 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(29, 185, 84, 0.15);
   overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .page-header::before {
