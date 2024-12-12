@@ -80,26 +80,35 @@
     <main class="container">
       <header class="page-header">
         <h1>Tom's Spotify Dashboard</h1>
+        <button id="spotifyLoginBtn" class="spotify-login-btn">
+          <i class="fab fa-spotify"></i>
+          Connect to Spotify
+        </button>
       </header>
 
       <!-- Dropdown Menu -->
       <div class="dropdown-section">
-        <button class="dropdown-toggle">
-          <i class="fas fa-music"></i>
-          Music Stats
+        <button class="dropdown-toggle" onclick="toggleDropdown()">
+          <div class="toggle-content">
+            <i class="fas fa-music"></i>
+            <span>Music Stats</span>
+          </div>
           <i class="fas fa-chevron-down"></i>
         </button>
 
-        <div class="dropdown-content">
-          <div class="dropdown-menu">
-            <button class="menu-item" data-section="recentlyPlayed">
-              <i class="fas fa-history"></i>
-              Recently Played
-            </button>
-            <button class="menu-item" data-section="topArtists">
-              <i class="fas fa-crown"></i>
-              Most Listened To Artists
-            </button>
+        <div class="dropdown-content" id="statsDropdown">
+          <div id="recentlyPlayed" class="stat-section">
+            <div class="section-header">
+              <h2><i class="fas fa-history"></i> Recently Played</h2>
+            </div>
+            <div class="card-grid" id="recentSongs"></div>
+          </div>
+
+          <div id="topArtists" class="stat-section">
+            <div class="section-header">
+              <h2><i class="fas fa-crown"></i> Most Listened To Artists</h2>
+            </div>
+            <div class="card-grid" id="topArtistsList"></div>
           </div>
         </div>
       </div>

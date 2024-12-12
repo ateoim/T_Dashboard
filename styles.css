@@ -154,9 +154,13 @@ body {
 
 /* Page header styles */
 .page-header {
-  text-align: center;
-  margin-bottom: 20px;
-  padding-top: 10px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .page-header h1 {
@@ -346,17 +350,20 @@ body {
 /* Dropdown Section */
 .dropdown-section {
   width: 100%;
-  max-width: 800px;
-  margin: 20px auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .dropdown-toggle {
   width: 100%;
-  padding: 15px 20px;
+  padding: 20px;
   background: var(--surface-dark);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-white);
+  font-size: 18px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -369,11 +376,19 @@ body {
   border-color: var(--spotify-green);
 }
 
+.toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .dropdown-content {
-  margin-top: 10px;
-  background: var(--surface-dark);
-  border-radius: 8px;
-  overflow: hidden;
+  margin-top: 20px;
+  display: none;
+}
+
+.dropdown-content.active {
+  display: block;
 }
 
 .dropdown-menu {
@@ -431,8 +446,8 @@ body {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 10px;
+  gap: 30px;
+  padding: 20px 0;
 }
 
 /* Song and Artist Items */
@@ -580,10 +595,8 @@ body {
 .stat-section {
   background: var(--surface-dark);
   border-radius: 12px;
-  padding: 24px;
-  margin: 20px 0;
-  width: 100%;
-  max-width: 800px;
+  padding: 30px;
+  margin-bottom: 30px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 

@@ -265,6 +265,18 @@ const addTrackToPlaylist = async (trackUri) => {
 
 // Fetch Spotify data once access token is available
 const fetchSpotifyData = () => {
+  const recentSongs = document.getElementById("recentSongs");
+  const topArtistsList = document.getElementById("topArtistsList");
+
+  // Clear previous content
+  recentSongs.innerHTML = "";
+  topArtistsList.innerHTML = "";
+
+  // Show loading state
+  recentSongs.innerHTML = '<div class="loading">Loading...</div>';
+  topArtistsList.innerHTML = '<div class="loading">Loading...</div>';
+
+  // Fetch data
   displayRecentlyPlayed().catch((error) =>
     console.error("Error with recently played", error)
   );
@@ -408,3 +420,37 @@ window.addSongToPlaylist = async function (songUri) {
     alert("Failed to add song to playlist. Please try again.");
   }
 };
+
+// Add these functions at the beginning of spotify.js
+const checkLoginStatus = () => {
+  const loginBtn = document.getElementById("spotifyLoginBtn");
+
+  if (!accessToken) {
+    loginBtn.style.display = "flex";
+    loginBtn.addEventListener("click", () => {
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
+        redirect_uri
+      )}&scope=${encodeURIComponent(scopes)}`;
+      window.location = authUrl;
+    });
+  } else {
+    loginBtn.style.display = "none";
+    fetchSpotifyData();
+  }
+};
+
+const toggleDropdown = () => {
+  const dropdown = document.getElementById("statsDropdown");
+  dropdown.classList.toggle("active");
+
+  // Only fetch data when opening the dropdown
+  if (dropdown.classList.contains("active") && accessToken) {
+    fetchSpotifyData();
+  }
+};
+
+// Update the initialization
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuth();
+  checkLoginStatus();
+});
