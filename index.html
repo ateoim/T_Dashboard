@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tom's Dashboard</title>
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-content">
+        <ul>
+          <li>
+            <a href="home.html"><i class="fas fa-home"></i> Home</a>
+          </li>
+          <li>
+            <a href="fitbit.html"><i class="fas fa-heartbeat"></i> Fitbit</a>
+          </li>
+          <li>
+            <a href="index.html"><i class="fab fa-spotify"></i> Spotify</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="container">
+      <header class="page-header">
+        <h1>Tom's Spotify Dashboard</h1>
+      </header>
+
+      <!-- Dropdown Menu -->
+      <div class="dropdown-section">
+        <button class="dropdown-toggle">
+          <i class="fas fa-music"></i>
+          Music Stats
+          <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <div class="dropdown-content">
+          <div class="dropdown-menu">
+            <button class="menu-item" data-section="recentlyPlayed">
+              <i class="fas fa-history"></i>
+              Recently Played
+            </button>
+            <button class="menu-item" data-section="topArtists">
+              <i class="fas fa-crown"></i>
+              Most Listened To Artists
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content sections (hidden by default) -->
+      <div id="recentlyPlayed" class="stat-section hidden">
+        <section class="music-section">
+          <div class="section-header">
+            <h2><i class="fas fa-history"></i> Recently Played</h2>
+            <a href="#" class="spotify-login-btn">
+              <i class="fab fa-spotify"></i> Login with Spotify
+            </a>
+          </div>
+          <div id="recentSongs" class="card-grid">
+            <div class="song-item placeholder">
+              <div class="song-image"></div>
+              <div class="song-info">
+                <p>Connect Spotify to see recent tracks</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="topArtists" class="stat-section hidden">
+        <section class="music-section">
+          <div class="section-header">
+            <h2>
+              <i class="fas fa-crown"></i> Most Listened To Artists This Month
+              ++ Song
+            </h2>
+            <a href="#" class="spotify-login-btn">
+              <i class="fab fa-spotify"></i> Login with Spotify
+            </a>
+          </div>
+          <div id="topArtists" class="card-grid">
+            <div class="artist-item placeholder">
+              <div class="artist-image"></div>
+              <div class="artist-info">
+                <p>Connect Spotify to see top artists</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="playlist-container">
+        <div class="playlist-header">
+          <h2><i class="fas fa-users"></i> Collaborative Spotify Playlist</h2>
+        </div>
+
+        <div class="playlist-content">
+          <div class="search-container">
+            <input
+              type="text"
+              id="songSearchInput"
+              placeholder="Search for songs to add..."
+              aria-label="Search songs"
+            />
+            <button id="songSearchButton">
+              <i class="fas fa-search"></i> Search
+            </button>
+          </div>
+
+          <div id="songSearchResults" class="search-results"></div>
+
+          <div id="playlistViewer" class="playlist-frame">
+            <iframe
+              src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg"
+              width="100%"
+              height="380"
+              frameborder="0"
+              allowtransparency="true"
+              allow="encrypted-media"
+            >
+            </iframe>
+          </div>
+        </div>
+      </div>
+
+      <section class="music-section search-section">
+        <h2><i class="fas fa-search"></i> Search Tracks</h2>
+        <div class="search-container">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search for tracks..."
+            aria-label="Search tracks"
+          />
+          <button id="searchButton">
+            <i class="fas fa-search"></i> Search
+          </button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <ul>
+          <li>
+            <a
+              href="https://x.com/greywizardtea"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Follow me on X"
+            >
+              <i class="fa-brands fa-x"></i>
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://www.instagram.com/grywzrd/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fab fa-instagram"></i>
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://soundcloud.com/greywizardtea"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fab fa-soundcloud"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script src="spotify.js"></script>
+
+    <!-- Site functionality -->
+    <script>
+      // Dropdown toggle
+      document
+        .querySelector(".dropdown-toggle")
+        .addEventListener("click", function () {
+          this.classList.toggle("active");
+          const dropdownContent = document.querySelector(".dropdown-content");
+          dropdownContent.classList.toggle("show");
+        });
+
+      // Menu item click handlers
+      document.querySelectorAll(".menu-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          // Remove active class from all menu items
+          document.querySelectorAll(".menu-item").forEach((menuItem) => {
+            menuItem.classList.remove("active");
+          });
+
+          // Add active class to clicked item
+          this.classList.add("active");
+
+          // Hide all stat sections
+          document.querySelectorAll(".stat-section").forEach((section) => {
+            section.classList.remove("visible");
+          });
+
+          // Show selected section
+          const sectionId = this.getAttribute("data-section");
+          const selectedSection = document.getElementById(sectionId);
+          selectedSection.classList.add("visible");
+        });
+      });
+
+      // Scroll animations
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+
+      document.querySelectorAll(".music-section").forEach((section) => {
+        observer.observe(section);
+      });
+
+      async function displayWords() {
+        const words = await fetchWords();
+        const chunkSize = 10; // Much smaller chunks for smoother rendering
+        const totalChunks = Math.ceil(words.length / chunkSize);
+
+        // Create a document fragment for better performance
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 0; i < totalChunks; i++) {
+          const chunk = words.slice(i * chunkSize, (i + 1) * chunkSize);
+
+          // Create and append words
+          chunk.forEach((word) => {
+            const div = document.createElement("div");
+            div.className = "word";
+            div.style.animationDelay = `${Math.random() * 0.3}s`; // Shorter animation delay
+            div.textContent = word;
+            fragment.appendChild(div);
+          });
+
+          // Update loading percentage
+          const progress = Math.min(
+            (((i + 1) / totalChunks) * 100).toFixed(1),
+            100
+          );
+          loadingElement.textContent = `DECODING... ${progress}%`;
+
+          // Add words to the page
+          dictionaryContent.appendChild(fragment.cloneNode(true));
+
+          // Longer delay between chunks for slower overall decoding
+          await new Promise((resolve) => setTimeout(resolve, 300)); // Increased delay between chunks
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+
+        // Fade out loading text
+        loadingElement.style.opacity = "0";
+        loadingElement.style.transition = "opacity 0.3s ease";
+        setTimeout(() => (loadingElement.style.display = "none"), 300);
+      }
+    </script>
+  </body>
+</html>
