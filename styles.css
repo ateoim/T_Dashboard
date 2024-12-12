@@ -824,3 +824,34 @@ body {
 .add-song-btn:hover {
   background: var(--spotify-green-bright);
 }
+
+/* Error message styling */
+.error-message {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  color: #ff4444;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* Loading state styling */
+.loading {
+  text-align: center;
+  color: var(--text-grey);
+  padding: 20px;
+}
+
+/* Improve dropdown animation */
+.dropdown-content {
+  transition: all 0.3s ease;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.dropdown-content.active {
+  max-height: 1000px;
+  opacity: 1;
+}

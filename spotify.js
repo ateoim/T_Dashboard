@@ -208,296 +208,84 @@ const embedPlaylistViewer = () => {
   `;
 };
 
-// Update the initialization
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize all event listeners and app functionality
+const initializeApp = () => {
+  // Check authentication first
   checkAuth();
   checkLoginStatus();
   embedPlaylistViewer();
 
-  // Add search functionality
+  // Initialize dropdown functionality
+  const dropdownToggle = document.querySelector(".dropdown-toggle");
+  if (dropdownToggle) {
+    dropdownToggle.addEventListener("click", toggleDropdown);
+  }
+
+  // Initialize search functionality
   const searchButton = document.getElementById("songSearchButton");
   const searchInput = document.getElementById("songSearchInput");
 
   if (searchButton && searchInput) {
-    searchButton.addEventListener("click", async () => {
-      const query = searchInput.value.trim();
-      if (query) {
-        const songs = await searchSpotifySongs(query);
-        displaySearchResults(songs);
-      }
-    });
+    // Handle search button click
+    searchButton.addEventListener("click", () => handleSearch(searchInput));
 
-    searchInput.addEventListener("keypress", async (e) => {
+    // Handle enter key in search input
+    searchInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
-        const query = searchInput.value.trim();
-        if (query) {
-          const songs = await searchSpotifySongs(query);
-          displaySearchResults(songs);
-        }
+        handleSearch(searchInput);
       }
     });
   }
-});
+};
 
-// ... rest of your existing code (searchTracks, addToPlaylist, etc.) ...
-
-//
-
-const searchTracks = async (query) => {
-  const response = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-      query
-    )}&type=track&limit=5`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+// Separate search handling function
+const handleSearch = async (searchInput) => {
+  const query = searchInput.value.trim();
+  if (query) {
+    try {
+      const songs = await searchSpotifySongs(query);
+      displaySearchResults(songs);
+    } catch (error) {
+      console.error("Search failed:", error);
+      displayError("Failed to search songs. Please try again.");
     }
-  );
-  const data = await response.json();
-  return data.tracks.items;
-};
-
-const addToPlaylist = async (playlistId, trackUri) => {
-  await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      uris: [trackUri],
-    }),
-  });
-};
-
-const searchAndDisplayTracks = async () => {
-  const query = document.getElementById("searchInput").value;
-  const tracks = await searchTracks(query);
-  const searchResultsDiv = document.getElementById("searchResults");
-  searchResultsDiv.innerHTML = "";
-
-  tracks.forEach((track) => {
-    const trackElement = document.createElement("div");
-    trackElement.className = "track-item";
-    trackElement.innerHTML = `
-        <p>${track.name} - ${track.artists
-      .map((artist) => artist.name)
-      .join(", ")}</p>
-        <button onclick="addTrackToPlaylist('${
-          track.uri
-        }')">Add to Playlist</button>
-      `;
-    searchResultsDiv.appendChild(trackElement);
-  });
-};
-
-const addTrackToPlaylist = async (trackUri) => {
-  const playlistId = "3l4a9oLo9GLIb4bMm0RGZg";
-  await addToPlaylist(playlistId, trackUri);
-  alert("Track added to the playlist!");
-};
-
-// Fetch Spotify data once access token is available
-const fetchSpotifyData = () => {
-  const recentSongs = document.getElementById("recentSongs");
-  const topArtistsList = document.getElementById("topArtistsList");
-
-  // Clear previous content
-  recentSongs.innerHTML = "";
-  topArtistsList.innerHTML = "";
-
-  // Show loading state
-  recentSongs.innerHTML = '<div class="loading">Loading...</div>';
-  topArtistsList.innerHTML = '<div class="loading">Loading...</div>';
-
-  // Fetch data
-  displayRecentlyPlayed().catch((error) =>
-    console.error("Error with recently played", error)
-  );
-  displayTopArtists().catch((error) =>
-    console.error("Error with top artists", error)
-  );
-};
-
-// Start the app
-checkAuth();
-
-// Initialize event listeners instead of inline `onclick` attributes
-document.addEventListener("DOMContentLoaded", () => {
-  initializePage();
-
-  // Add search functionality for both search inputs
-  const searchButton = document.getElementById("searchButton");
-  const songSearchButton = document.getElementById("songSearchButton");
-  const songSearchInput = document.getElementById("songSearchInput");
-
-  // Original search functionality
-  if (searchButton) {
-    searchButton.addEventListener("click", searchAndDisplayTracks);
-  }
-
-  // New song search functionality
-  if (songSearchButton) {
-    songSearchButton.addEventListener("click", async () => {
-      const query = songSearchInput.value.trim();
-      if (query) {
-        const songs = await searchSpotifySongs(query);
-        displaySearchResults(songs);
-      }
-    });
-  }
-
-  // Handle enter key press in song search input
-  if (songSearchInput) {
-    songSearchInput.addEventListener("keypress", async (e) => {
-      if (e.key === "Enter") {
-        const query = songSearchInput.value.trim();
-        if (query) {
-          const songs = await searchSpotifySongs(query);
-          displaySearchResults(songs);
-        }
-      }
-    });
-  }
-});
-
-// Add these functions to handle song search and adding to playlist
-const searchSpotifySongs = async (query) => {
-  try {
-    const response = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=track&limit=5`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    const data = await response.json();
-    return data.tracks.items;
-  } catch (error) {
-    console.error("Error searching songs:", error);
-    return [];
   }
 };
 
-const displaySearchResults = (songs) => {
-  const resultsDiv = document.getElementById("songSearchResults");
-  resultsDiv.innerHTML = "";
-
-  if (!songs.length) {
-    resultsDiv.innerHTML = '<p class="no-results">No songs found</p>';
-    return;
-  }
-
-  songs.forEach((song) => {
-    const songElement = document.createElement("div");
-    songElement.className = "search-result-item";
-    songElement.innerHTML = `
-      <img src="${song.album.images[2].url}" alt="${
-      song.name
-    }" class="song-thumbnail">
-      <div class="song-details">
-        <p class="song-title">${song.name}</p>
-        <p class="song-artist">${song.artists
-          .map((artist) => artist.name)
-          .join(", ")}</p>
-      </div>
-      <button onclick="addSongToPlaylist('${song.uri}')" class="add-song-btn">
-        <i class="fas fa-plus"></i>
-      </button>
-    `;
-    resultsDiv.appendChild(songElement);
-  });
-};
-
-// Make sure this function is defined in the global scope
-window.addSongToPlaylist = async function (songUri) {
-  try {
-    await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        uris: [songUri],
-      }),
-    });
-
-    // Show success message
-    alert("Song added to playlist!");
-
-    // Refresh the playlist iframe
-    const playlistViewer = document.getElementById("playlistViewer");
-    playlistViewer.innerHTML = `
-      <iframe
-        src="https://open.spotify.com/embed/playlist/${playlistId}?refresh=${Date.now()}"
-        width="100%"
-        height="380"
-        frameborder="0"
-        allowtransparency="true"
-        allow="encrypted-media"
-      ></iframe>
-    `;
-  } catch (error) {
-    console.error("Error adding song to playlist:", error);
-    alert("Failed to add song to playlist. Please try again.");
-  }
-};
-
-// Add these functions at the beginning of spotify.js
-const checkLoginStatus = () => {
-  const loginBtn = document.getElementById("spotifyLoginBtn");
-
-  if (!loginBtn) {
-    console.error("Login button not found");
-    return;
-  }
-
-  if (!accessToken) {
-    loginBtn.style.display = "flex";
-    loginBtn.onclick = () => {
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
-        redirect_uri
-      )}&scope=${encodeURIComponent(scopes)}`;
-      window.location.href = authUrl;
-    };
-  } else {
-    loginBtn.style.display = "none";
-    fetchSpotifyData();
-  }
-};
-
+// Update the toggleDropdown function
 const toggleDropdown = () => {
   const dropdown = document.getElementById("statsDropdown");
   const toggleButton = document.querySelector(
     ".dropdown-toggle .fas.fa-chevron-down"
   );
 
-  if (!dropdown) {
-    console.error("Dropdown element not found");
+  if (!dropdown || !toggleButton) {
+    console.error("Dropdown elements not found");
     return;
   }
 
-  dropdown.classList.toggle("active");
+  const isActive = dropdown.classList.toggle("active");
+  toggleButton.style.transform = isActive ? "rotate(180deg)" : "rotate(0)";
 
-  if (dropdown.classList.contains("active")) {
-    toggleButton.style.transform = "rotate(180deg)";
-    if (accessToken) {
-      fetchSpotifyData();
-    }
-  } else {
-    toggleButton.style.transform = "rotate(0)";
+  if (isActive && accessToken) {
+    fetchSpotifyData();
   }
 };
 
-// Add event listener for the dropdown toggle
-document.addEventListener("DOMContentLoaded", () => {
-  const toggleBtn = document.querySelector(".dropdown-toggle");
-  if (toggleBtn) {
-    toggleBtn.addEventListener("click", toggleDropdown);
+// Add error display function
+const displayError = (message) => {
+  const errorDiv = document.createElement("div");
+  errorDiv.className = "error-message";
+  errorDiv.textContent = message;
+
+  const searchResults = document.getElementById("songSearchResults");
+  if (searchResults) {
+    searchResults.innerHTML = "";
+    searchResults.appendChild(errorDiv);
   }
-});
+};
+
+// Single DOMContentLoaded event listener
+document.addEventListener("DOMContentLoaded", initializeApp);
+
+// Remove any duplicate event listeners and initialization calls
