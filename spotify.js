@@ -218,6 +218,26 @@ const handlePlaylistError = () => {
   }
 };
 
+// Add click handlers for stat options
+const initializeStatOptions = () => {
+  const recentlyPlayedOption = document.getElementById("recentlyPlayedOption");
+  const topArtistsOption = document.getElementById("topArtistsOption");
+  const recentlyPlayedSection = document.getElementById("recentlyPlayed");
+  const topArtistsSection = document.getElementById("topArtists");
+
+  recentlyPlayedOption.addEventListener("click", () => {
+    recentlyPlayedSection.style.display = "block";
+    topArtistsSection.style.display = "none";
+    displayRecentlyPlayed();
+  });
+
+  topArtistsOption.addEventListener("click", () => {
+    topArtistsSection.style.display = "block";
+    recentlyPlayedSection.style.display = "none";
+    displayTopArtists();
+  });
+};
+
 // Initialize all event listeners and app functionality
 const initializeApp = () => {
   // First check authentication
@@ -254,6 +274,9 @@ const initializeApp = () => {
 
   // Finally, embed the playlist
   embedPlaylistViewer();
+
+  // Initialize stat options
+  initializeStatOptions();
 };
 
 // Separate search handling function
