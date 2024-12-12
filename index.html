@@ -127,12 +127,18 @@
               placeholder="Search for songs to add..."
               aria-label="Search songs"
             />
-            <button id="songSearchButton">
+            <button id="songSearchButton" class="search-button">
               <i class="fas fa-search"></i> Search
             </button>
           </div>
 
           <div id="songSearchResults" class="search-results"></div>
+
+          <!-- Add a loading indicator -->
+          <div id="playlistLoading" class="loading-indicator">
+            <i class="fas fa-spinner fa-spin"></i> Loading playlist...
+          </div>
+
           <div id="playlistViewer" class="playlist-frame"></div>
         </div>
       </div>

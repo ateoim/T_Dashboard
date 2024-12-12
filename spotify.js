@@ -184,15 +184,28 @@ const displayCollaborationLink = () => {
 // Function to embed the Spotify playlist viewer
 const embedPlaylistViewer = () => {
   const viewerElement = document.getElementById("playlistViewer");
-  viewerElement.innerHTML = `
-    <iframe src="https://open.spotify.com/embed/playlist/${playlistId}" 
-            width="100%" 
-            height="380" 
-            frameborder="0" 
-            allowtransparency="true" 
-            allow="encrypted-media">
-    </iframe>
-  `;
+  const loadingElement = document.getElementById("playlistLoading");
+
+  if (viewerElement) {
+    viewerElement.innerHTML = `
+      <iframe 
+        src="https://open.spotify.com/embed/playlist/${playlistId}"
+        width="100%" 
+        height="380" 
+        frameborder="0" 
+        allowtransparency="true" 
+        allow="encrypted-media">
+      </iframe>
+    `;
+
+    // Hide loading indicator once iframe is loaded
+    const iframe = viewerElement.querySelector("iframe");
+    iframe.onload = () => {
+      if (loadingElement) {
+        loadingElement.style.display = "none";
+      }
+    };
+  }
 };
 
 // Function to initialize the page
@@ -441,7 +454,18 @@ const checkLoginStatus = () => {
 
 const toggleDropdown = () => {
   const dropdown = document.getElementById("statsDropdown");
+  const toggleButton = document.querySelector(
+    ".dropdown-toggle .fas.fa-chevron-down"
+  );
+
   dropdown.classList.toggle("active");
+
+  // Rotate chevron when dropdown is open/closed
+  if (dropdown.classList.contains("active")) {
+    toggleButton.style.transform = "rotate(180deg)";
+  } else {
+    toggleButton.style.transform = "rotate(0)";
+  }
 
   // Only fetch data when opening the dropdown
   if (dropdown.classList.contains("active") && accessToken) {
