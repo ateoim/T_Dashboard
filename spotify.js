@@ -210,9 +210,33 @@ const embedPlaylistViewer = () => {
 
 // Update the initialization
 document.addEventListener("DOMContentLoaded", () => {
-  embedPlaylistViewer(); // Call this first
   checkAuth();
   checkLoginStatus();
+  embedPlaylistViewer();
+
+  // Add search functionality
+  const searchButton = document.getElementById("songSearchButton");
+  const searchInput = document.getElementById("songSearchInput");
+
+  if (searchButton && searchInput) {
+    searchButton.addEventListener("click", async () => {
+      const query = searchInput.value.trim();
+      if (query) {
+        const songs = await searchSpotifySongs(query);
+        displaySearchResults(songs);
+      }
+    });
+
+    searchInput.addEventListener("keypress", async (e) => {
+      if (e.key === "Enter") {
+        const query = searchInput.value.trim();
+        if (query) {
+          const songs = await searchSpotifySongs(query);
+          displaySearchResults(songs);
+        }
+      }
+    });
+  }
 });
 
 // ... rest of your existing code (searchTracks, addToPlaylist, etc.) ...
@@ -339,9 +363,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Add these functions to handle song search and adding to playlist
-async function searchSpotifySongs(query) {
+const searchSpotifySongs = async (query) => {
   try {
-    console.log("Searching for:", query); // Debug log
     const response = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(
         query
@@ -353,49 +376,42 @@ async function searchSpotifySongs(query) {
       }
     );
     const data = await response.json();
-    console.log("Search results:", data); // Debug log
     return data.tracks.items;
   } catch (error) {
     console.error("Error searching songs:", error);
     return [];
   }
-}
+};
 
-function displaySearchResults(songs) {
-  console.log("Displaying results for songs:", songs); // Debug log
-  const searchResults = document.getElementById("songSearchResults");
-  if (!searchResults) {
-    console.error("songSearchResults element not found"); // Debug log
+const displaySearchResults = (songs) => {
+  const resultsDiv = document.getElementById("songSearchResults");
+  resultsDiv.innerHTML = "";
+
+  if (!songs.length) {
+    resultsDiv.innerHTML = '<p class="no-results">No songs found</p>';
     return;
   }
-  searchResults.innerHTML = "";
 
   songs.forEach((song) => {
-    const resultItem = document.createElement("div");
-    resultItem.className = "search-result-item";
-    resultItem.innerHTML = `
-      <img 
-        src="${song.album.images[song.album.images.length - 1].url}" 
-        alt="${song.name}" 
-        class="song-thumbnail"
-      >
+    const songElement = document.createElement("div");
+    songElement.className = "search-result-item";
+    songElement.innerHTML = `
+      <img src="${song.album.images[2].url}" alt="${
+      song.name
+    }" class="song-thumbnail">
       <div class="song-details">
         <p class="song-title">${song.name}</p>
         <p class="song-artist">${song.artists
           .map((artist) => artist.name)
           .join(", ")}</p>
       </div>
-      <button 
-        class="add-song-btn" 
-        onclick="addSongToPlaylist('${song.uri}')"
-        title="Add to playlist"
-      >
+      <button onclick="addSongToPlaylist('${song.uri}')" class="add-song-btn">
         <i class="fas fa-plus"></i>
       </button>
     `;
-    searchResults.appendChild(resultItem);
+    resultsDiv.appendChild(songElement);
   });
-}
+};
 
 // Make sure this function is defined in the global scope
 window.addSongToPlaylist = async function (songUri) {
@@ -436,14 +452,19 @@ window.addSongToPlaylist = async function (songUri) {
 const checkLoginStatus = () => {
   const loginBtn = document.getElementById("spotifyLoginBtn");
 
+  if (!loginBtn) {
+    console.error("Login button not found");
+    return;
+  }
+
   if (!accessToken) {
     loginBtn.style.display = "flex";
-    loginBtn.addEventListener("click", () => {
+    loginBtn.onclick = () => {
       const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
         redirect_uri
       )}&scope=${encodeURIComponent(scopes)}`;
-      window.location = authUrl;
-    });
+      window.location.href = authUrl;
+    };
   } else {
     loginBtn.style.display = "none";
     fetchSpotifyData();
@@ -456,17 +477,27 @@ const toggleDropdown = () => {
     ".dropdown-toggle .fas.fa-chevron-down"
   );
 
+  if (!dropdown) {
+    console.error("Dropdown element not found");
+    return;
+  }
+
   dropdown.classList.toggle("active");
 
-  // Rotate chevron when dropdown is open/closed
   if (dropdown.classList.contains("active")) {
     toggleButton.style.transform = "rotate(180deg)";
+    if (accessToken) {
+      fetchSpotifyData();
+    }
   } else {
     toggleButton.style.transform = "rotate(0)";
   }
-
-  // Only fetch data when opening the dropdown
-  if (dropdown.classList.contains("active") && accessToken) {
-    fetchSpotifyData();
-  }
 };
+
+// Add event listener for the dropdown toggle
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.querySelector(".dropdown-toggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", toggleDropdown);
+  }
+});
