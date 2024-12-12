@@ -80,7 +80,7 @@ const fetchTopArtists = async () => {
 const displayTopArtists = async () => {
   try {
     const artists = await fetchTopArtists();
-    const topArtistsDiv = document.getElementById("topArtists");
+    const topArtistsDiv = document.getElementById("topArtistsList");
     topArtistsDiv.innerHTML = ""; // Clear previous content
 
     artists.forEach((artist) => {
