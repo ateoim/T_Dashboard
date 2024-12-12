@@ -2,7 +2,7 @@
 const client_id = "e2e15c5deef14339b504d97037b8abe3";
 const redirect_uri = "https://ateoim.github.io/T_Dashboard/index.html";
 const scopes =
-  "user-read-recently-played user-top-read user-modify-playback-state streaming playlist-modify-public playlist-modify-private";
+  "user-read-recently-played user-top-read user-modify-playback-state streaming playlist-modify-public playlist-modify-private playlist-read-collaborative";
 let accessToken = null;
 
 // Function to get access token from URL hash
@@ -15,12 +15,15 @@ const getAccessTokenFromUrl = () => {
 // If the access token is not available, redirect to Spotify authorization
 const checkAuth = () => {
   accessToken = getAccessTokenFromUrl();
+
   if (!accessToken) {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
       redirect_uri
     )}&scope=${encodeURIComponent(scopes)}`;
     window.location = authUrl;
   } else {
+    // Initialize everything after we have the token
+    initializePage();
     fetchSpotifyData();
   }
 };
@@ -184,66 +187,32 @@ const displayCollaborationLink = () => {
 // Function to embed the Spotify playlist viewer
 const embedPlaylistViewer = () => {
   const viewerElement = document.getElementById("playlistViewer");
-  const loadingElement = document.getElementById("playlistLoading");
 
   if (!viewerElement) {
     console.error("Playlist viewer element not found");
     return;
   }
 
-  try {
-    // Show loading state
-    if (loadingElement) {
-      loadingElement.style.display = "block";
-    }
-
-    // Use the exact embed code from Spotify
-    viewerElement.innerHTML = `
-      <iframe 
-        style="border-radius:12px" 
-        src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator" 
-        width="100%" 
-        height="352" 
-        frameBorder="0" 
-        allowfullscreen="" 
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-        loading="lazy">
-      </iframe>
-    `;
-
-    // Handle iframe load
-    const iframe = viewerElement.querySelector("iframe");
-    if (iframe) {
-      iframe.onload = () => {
-        if (loadingElement) {
-          loadingElement.style.display = "none";
-        }
-      };
-    }
-  } catch (error) {
-    console.error("Error embedding playlist:", error);
-    viewerElement.innerHTML = `
-      <div class="error-message">
-        Failed to load playlist. Please try refreshing the page.
-      </div>
-    `;
-    if (loadingElement) {
-      loadingElement.style.display = "none";
-    }
-  }
+  // Directly embed the playlist with the exact code from Spotify
+  viewerElement.innerHTML = `
+    <iframe 
+      style="border-radius:12px" 
+      src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator&theme=0" 
+      width="100%" 
+      height="352" 
+      frameBorder="0" 
+      allowfullscreen="" 
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+      loading="lazy">
+    </iframe>
+  `;
 };
 
-// Function to initialize the page
-const initializePage = () => {
-  displayCollaborationLink();
-  embedPlaylistViewer();
-};
-
-// Update the DOMContentLoaded event listener
+// Update the initialization
 document.addEventListener("DOMContentLoaded", () => {
+  embedPlaylistViewer(); // Call this first
   checkAuth();
   checkLoginStatus();
-  initializePage(); // This will handle both displayCollaborationLink and embedPlaylistViewer
 });
 
 // ... rest of your existing code (searchTracks, addToPlaylist, etc.) ...
