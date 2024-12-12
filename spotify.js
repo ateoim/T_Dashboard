@@ -22,8 +22,6 @@ const checkAuth = () => {
     )}&scope=${encodeURIComponent(scopes)}`;
     window.location = authUrl;
   } else {
-    // Initialize everything after we have the token
-    initializePage();
     fetchSpotifyData();
   }
 };
@@ -222,32 +220,40 @@ const handlePlaylistError = () => {
 
 // Initialize all event listeners and app functionality
 const initializeApp = () => {
-  // Add dropdown click listener
+  // First check authentication
+  checkAuth();
+
+  // Then set up event listeners
   const dropdownToggle = document.querySelector(".dropdown-toggle");
   if (dropdownToggle) {
     dropdownToggle.addEventListener("click", toggleDropdown);
   }
 
-  // Rest of initialization...
-  checkAuth();
-  checkLoginStatus();
-  embedPlaylistViewer();
+  const loginBtn = document.getElementById("spotifyLoginBtn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
+        redirect_uri
+      )}&scope=${encodeURIComponent(scopes)}`;
+      window.location.href = authUrl;
+    });
+  }
 
   // Initialize search functionality
   const searchButton = document.getElementById("songSearchButton");
   const searchInput = document.getElementById("songSearchInput");
 
   if (searchButton && searchInput) {
-    // Handle search button click
     searchButton.addEventListener("click", () => handleSearch(searchInput));
-
-    // Handle enter key in search input
     searchInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         handleSearch(searchInput);
       }
     });
   }
+
+  // Finally, embed the playlist
+  embedPlaylistViewer();
 };
 
 // Separate search handling function
@@ -276,17 +282,15 @@ const toggleDropdown = () => {
     return;
   }
 
-  // Toggle the active class
   dropdown.classList.toggle("active");
 
-  // Update the chevron rotation
   if (toggleButton) {
     toggleButton.style.transform = dropdown.classList.contains("active")
       ? "rotate(180deg)"
       : "rotate(0)";
   }
 
-  // Fetch data if opening and authenticated
+  // Only fetch data when opening and if we have an access token
   if (dropdown.classList.contains("active") && accessToken) {
     fetchSpotifyData();
   }
@@ -332,4 +336,24 @@ const checkLoginStatus = () => {
     loginBtn.style.display = "none";
     fetchSpotifyData();
   }
+};
+
+// Add the missing fetchSpotifyData function
+const fetchSpotifyData = () => {
+  const recentSongs = document.getElementById("recentSongs");
+  const topArtistsList = document.getElementById("topArtistsList");
+
+  if (recentSongs) {
+    recentSongs.innerHTML = '<div class="loading">Loading...</div>';
+  }
+  if (topArtistsList) {
+    topArtistsList.innerHTML = '<div class="loading">Loading...</div>';
+  }
+
+  displayRecentlyPlayed().catch((error) =>
+    console.error("Error with recently played:", error)
+  );
+  displayTopArtists().catch((error) =>
+    console.error("Error with top artists:", error)
+  );
 };
