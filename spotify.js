@@ -193,11 +193,11 @@ const embedPlaylistViewer = () => {
     return;
   }
 
-  // Directly embed the playlist with the exact code from Spotify
+  // Use the exact embed code from Spotify
   viewerElement.innerHTML = `
     <iframe 
       style="border-radius:12px" 
-      src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator&theme=0" 
+      src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator" 
       width="100%" 
       height="352" 
       frameBorder="0" 
@@ -208,18 +208,30 @@ const embedPlaylistViewer = () => {
   `;
 };
 
+// Add this function to handle playlist loading errors
+const handlePlaylistError = () => {
+  const viewerElement = document.getElementById("playlistViewer");
+  if (viewerElement) {
+    viewerElement.innerHTML = `
+      <div class="error-message">
+        Failed to load playlist. Please check your connection and try refreshing the page.
+      </div>
+    `;
+  }
+};
+
 // Initialize all event listeners and app functionality
 const initializeApp = () => {
-  // Check authentication first
-  checkAuth();
-  checkLoginStatus();
-  embedPlaylistViewer();
-
-  // Initialize dropdown functionality
+  // Add dropdown click listener
   const dropdownToggle = document.querySelector(".dropdown-toggle");
   if (dropdownToggle) {
     dropdownToggle.addEventListener("click", toggleDropdown);
   }
+
+  // Rest of initialization...
+  checkAuth();
+  checkLoginStatus();
+  embedPlaylistViewer();
 
   // Initialize search functionality
   const searchButton = document.getElementById("songSearchButton");
@@ -259,15 +271,23 @@ const toggleDropdown = () => {
     ".dropdown-toggle .fas.fa-chevron-down"
   );
 
-  if (!dropdown || !toggleButton) {
-    console.error("Dropdown elements not found");
+  if (!dropdown) {
+    console.error("Dropdown element not found");
     return;
   }
 
-  const isActive = dropdown.classList.toggle("active");
-  toggleButton.style.transform = isActive ? "rotate(180deg)" : "rotate(0)";
+  // Toggle the active class
+  dropdown.classList.toggle("active");
 
-  if (isActive && accessToken) {
+  // Update the chevron rotation
+  if (toggleButton) {
+    toggleButton.style.transform = dropdown.classList.contains("active")
+      ? "rotate(180deg)"
+      : "rotate(0)";
+  }
+
+  // Fetch data if opening and authenticated
+  if (dropdown.classList.contains("active") && accessToken) {
     fetchSpotifyData();
   }
 };
@@ -289,3 +309,27 @@ const displayError = (message) => {
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 // Remove any duplicate event listeners and initialization calls
+
+// Update the checkLoginStatus function
+const checkLoginStatus = () => {
+  const loginBtn = document.getElementById("spotifyLoginBtn");
+
+  if (!loginBtn) {
+    console.error("Login button not found");
+    return;
+  }
+
+  if (!accessToken) {
+    loginBtn.style.display = "flex";
+    // Add click event listener to the button
+    loginBtn.addEventListener("click", () => {
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
+        redirect_uri
+      )}&scope=${encodeURIComponent(scopes)}`;
+      window.location.href = authUrl;
+    });
+  } else {
+    loginBtn.style.display = "none";
+    fetchSpotifyData();
+  }
+};

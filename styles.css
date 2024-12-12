@@ -356,18 +356,16 @@ body {
 }
 
 .dropdown-toggle {
+  cursor: pointer;
   width: 100%;
-  padding: 20px;
+  padding: 15px 20px;
   background: var(--surface-dark);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--text-white);
-  font-size: 18px;
-  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -376,18 +374,16 @@ body {
   border-color: var(--spotify-green);
 }
 
-.toggle-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.dropdown-toggle .fas.fa-chevron-down {
+  transition: transform 0.3s ease;
 }
 
 .dropdown-content {
-  margin-top: 20px;
   display: none;
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
+  margin-top: 10px;
 }
 
 .dropdown-content.active {
