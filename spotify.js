@@ -83,40 +83,37 @@ const displayTopArtists = async () => {
     const topArtistsDiv = document.getElementById("topArtists");
     topArtistsDiv.innerHTML = ""; // Clear previous content
 
-    if (artists.length === 0) {
-      topArtistsDiv.innerHTML = "<p>No top artists found</p>";
-      return;
-    }
-
     artists.forEach((artist) => {
       const artistElement = document.createElement("div");
       artistElement.className = "artist-item";
       artistElement.innerHTML = `
-        <img src="${artist.images[0].url}" alt="${
-        artist.name
-      }" class="artist-image">
-        <div class="artist-info">
-          <p>${artist.name}</p>
-          <p class="top-track">
-            ${
-              artist.topTrack
-                ? `Top track: ${artist.topTrack.name}`
-                : "No top track found"
-            }
-          </p>
+        <div class="artist-image">
+          <img src="${artist.images[0].url}" alt="${artist.name}">
+          ${
+            artist.topTrack
+              ? `
+            <button class="play-button" onclick="playSong('${artist.topTrack.uri}')">
+              <i class="fas fa-play"></i>
+            </button>
+          `
+              : ""
+          }
         </div>
-        ${
-          artist.topTrack
-            ? `<button onclick="playSong('${artist.topTrack.uri}')">Play</button>`
-            : ""
-        }
+        <div class="artist-info">
+          <h3 class="artist-name">${artist.name}</h3>
+          ${
+            artist.topTrack
+              ? `
+            <p class="top-track">Top track: ${artist.topTrack.name}</p>
+          `
+              : ""
+          }
+        </div>
       `;
       topArtistsDiv.appendChild(artistElement);
     });
   } catch (error) {
     console.error("Error displaying top artists:", error);
-    document.getElementById("topArtists").innerHTML =
-      "<p>Error displaying top artists</p>";
   }
 };
 
@@ -124,22 +121,25 @@ const displayTopArtists = async () => {
 const displayRecentlyPlayed = async () => {
   const songs = await fetchRecentlyPlayed();
   const recentSongsDiv = document.getElementById("recentSongs");
+  recentSongsDiv.innerHTML = ""; // Clear previous content
 
   songs.forEach((song) => {
     const songElement = document.createElement("div");
     songElement.className = "song-item";
     songElement.innerHTML = `
-        <img src="${song.track.album.images[0].url}" alt="${
-      song.track.name
-    }" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;">
-        <div class="song-info" style="margin-left: 5px;">
-          <p>${song.track.name}</p>
-          <p style="font-size: 0.8em; color: #b3b3b3;">${song.track.artists
-            .map((artist) => artist.name)
-            .join(", ")}</p>
-        </div>
-        <button onclick="playSong('${song.track.uri}')">Play</button>
-      `;
+      <div class="song-image">
+        <img src="${song.track.album.images[0].url}" alt="${song.track.name}">
+        <button class="play-button" onclick="playSong('${song.track.uri}')">
+          <i class="fas fa-play"></i>
+        </button>
+      </div>
+      <div class="song-info">
+        <h3 class="song-title">${song.track.name}</h3>
+        <p class="song-artist">${song.track.artists
+          .map((artist) => artist.name)
+          .join(", ")}</p>
+      </div>
+    `;
     recentSongsDiv.appendChild(songElement);
   });
 };
