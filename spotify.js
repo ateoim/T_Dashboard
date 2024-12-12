@@ -380,3 +380,104 @@ const fetchSpotifyData = () => {
     console.error("Error with top artists:", error)
   );
 };
+
+// Add these functions for search functionality
+const searchSpotifySongs = async (query) => {
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        query
+      )}&type=track&limit=5`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.tracks.items;
+  } catch (error) {
+    console.error("Error searching songs:", error);
+    throw error;
+  }
+};
+
+// Function to display search results
+const displaySearchResults = (songs) => {
+  const searchResults = document.getElementById("songSearchResults");
+  searchResults.innerHTML = "";
+
+  if (!songs || songs.length === 0) {
+    searchResults.innerHTML = '<div class="no-results">No songs found</div>';
+    return;
+  }
+
+  songs.forEach((song) => {
+    const resultItem = document.createElement("div");
+    resultItem.className = "search-result-item";
+    resultItem.innerHTML = `
+      <img 
+        src="${song.album.images[song.album.images.length - 1].url}" 
+        alt="${song.name}" 
+        class="song-thumbnail"
+      >
+      <div class="song-details">
+        <p class="song-title">${song.name}</p>
+        <p class="song-artist">${song.artists
+          .map((artist) => artist.name)
+          .join(", ")}</p>
+      </div>
+      <button 
+        class="add-song-btn" 
+        onclick="addSongToPlaylist('${song.uri}')"
+        title="Add to playlist"
+      >
+        <i class="fas fa-plus"></i>
+      </button>
+    `;
+    searchResults.appendChild(resultItem);
+  });
+};
+
+// Function to add song to playlist
+const addSongToPlaylist = async (songUri) => {
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uris: [songUri],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Show success message
+    const searchResults = document.getElementById("songSearchResults");
+    searchResults.innerHTML =
+      '<div class="success-message">Song added successfully!</div>';
+
+    // Refresh the playlist iframe after a short delay
+    setTimeout(() => {
+      embedPlaylistViewer();
+    }, 1000);
+  } catch (error) {
+    console.error("Error adding song to playlist:", error);
+    const searchResults = document.getElementById("songSearchResults");
+    searchResults.innerHTML =
+      '<div class="error-message">Failed to add song. Please try again.</div>';
+  }
+};
