@@ -450,9 +450,9 @@ body {
 /* Card Grid */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
-  padding: 20px 0;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 16px;
 }
 
 /* Song and Artist Items */
@@ -463,9 +463,8 @@ body {
   overflow: hidden;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  max-width: 200px;
+  margin: 0 auto;
 }
 
 .song-item:hover,
@@ -595,16 +594,18 @@ body {
 /* Playlist Frame */
 .playlist-frame {
   margin-top: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--nav-dark);
-  min-height: 380px;
+  min-height: 352px;
 }
 
 .playlist-frame iframe {
   border: none;
   width: 100%;
-  height: 380px;
+  height: 352px;
+  border-radius: 12px;
+  display: block;
 }
 
 .loading-indicator {
@@ -622,8 +623,8 @@ body {
 .stat-section {
   background: var(--surface-dark);
   border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 30px;
+  padding: 20px;
+  margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -648,6 +649,7 @@ body {
   position: relative;
   width: 100%;
   padding-top: 100%;
+  max-height: 200px;
   background: var(--background-dark);
 }
 
@@ -757,4 +759,14 @@ body {
 
 .dropdown-toggle .fas.fa-chevron-down {
   transition: transform 0.3s ease;
+}
+
+/* Add error message styling */
+.error-message {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-grey);
+  background: var(--nav-dark);
+  border-radius: 8px;
+  margin: 20px 0;
 }

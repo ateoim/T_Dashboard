@@ -186,25 +186,50 @@ const embedPlaylistViewer = () => {
   const viewerElement = document.getElementById("playlistViewer");
   const loadingElement = document.getElementById("playlistLoading");
 
-  if (viewerElement) {
+  if (!viewerElement) {
+    console.error("Playlist viewer element not found");
+    return;
+  }
+
+  try {
+    // Show loading state
+    if (loadingElement) {
+      loadingElement.style.display = "block";
+    }
+
+    // Use the exact embed code from Spotify
     viewerElement.innerHTML = `
       <iframe 
-        src="https://open.spotify.com/embed/playlist/${playlistId}"
+        style="border-radius:12px" 
+        src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator" 
         width="100%" 
-        height="380" 
-        frameborder="0" 
-        allowtransparency="true" 
-        allow="encrypted-media">
+        height="352" 
+        frameBorder="0" 
+        allowfullscreen="" 
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+        loading="lazy">
       </iframe>
     `;
 
-    // Hide loading indicator once iframe is loaded
+    // Handle iframe load
     const iframe = viewerElement.querySelector("iframe");
-    iframe.onload = () => {
-      if (loadingElement) {
-        loadingElement.style.display = "none";
-      }
-    };
+    if (iframe) {
+      iframe.onload = () => {
+        if (loadingElement) {
+          loadingElement.style.display = "none";
+        }
+      };
+    }
+  } catch (error) {
+    console.error("Error embedding playlist:", error);
+    viewerElement.innerHTML = `
+      <div class="error-message">
+        Failed to load playlist. Please try refreshing the page.
+      </div>
+    `;
+    if (loadingElement) {
+      loadingElement.style.display = "none";
+    }
   }
 };
 
@@ -214,8 +239,12 @@ const initializePage = () => {
   embedPlaylistViewer();
 };
 
-// Call this function when the page loads
-window.onload = initializePage;
+// Update the DOMContentLoaded event listener
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuth();
+  checkLoginStatus();
+  initializePage(); // This will handle both displayCollaborationLink and embedPlaylistViewer
+});
 
 // ... rest of your existing code (searchTracks, addToPlaylist, etc.) ...
 
@@ -472,9 +501,3 @@ const toggleDropdown = () => {
     fetchSpotifyData();
   }
 };
-
-// Update the initialization
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuth();
-  checkLoginStatus();
-});
