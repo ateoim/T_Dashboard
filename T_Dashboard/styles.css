@@ -1,0 +1,85 @@
+/* Added styles for h1 */
+h1 {
+  text-align: center;
+}
+
+/* Added styles for header and main */
+header {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+}
+
+main.content {
+  padding: 20px;
+}
+
+/* Refactored artist-item styles */
+.artist-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.artist-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.artist-info {
+  margin-left: 10px;
+}
+
+.top-track {
+  font-size: 0.8em;
+  color: #b3b3b3;
+}
+
+/* Refactored song-item styles */
+.song-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.song-info {
+  margin-left: 10px;
+}
+
+/* Refactored track-item styles */
+.track-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Button styles */
+button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #1db954;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #17a44a;
+}
+
+/* Invite link styles */
+.invite-link {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #1db954;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.invite-link:hover {
+  background-color: #17a44a;
+}
