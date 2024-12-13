@@ -5,27 +5,6 @@ const scopes =
   "user-read-recently-played user-top-read user-modify-playback-state streaming playlist-modify-public playlist-modify-private playlist-read-collaborative";
 let accessToken = null;
 
-// Function to get access token from URL hash
-const getAccessTokenFromUrl = () => {
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  return params.get("access_token");
-};
-
-// If the access token is not available, redirect to Spotify authorization
-const checkAuth = () => {
-  accessToken = getAccessTokenFromUrl();
-
-  if (!accessToken) {
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
-      redirect_uri
-    )}&scope=${encodeURIComponent(scopes)}`;
-    window.location = authUrl;
-  } else {
-    fetchSpotifyData();
-  }
-};
-
 // Function to fetch recently played songs
 const fetchRecentlyPlayed = async () => {
   const response = await fetch(
@@ -240,24 +219,14 @@ const initializeStatOptions = () => {
 
 // Initialize all event listeners and app functionality
 const initializeApp = () => {
-  // First check authentication
-  checkAuth();
-
-  // Then set up event listeners
+  // Add dropdown click listener
   const dropdownToggle = document.querySelector(".dropdown-toggle");
   if (dropdownToggle) {
     dropdownToggle.addEventListener("click", toggleDropdown);
   }
 
-  const loginBtn = document.getElementById("spotifyLoginBtn");
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
-        redirect_uri
-      )}&scope=${encodeURIComponent(scopes)}`;
-      window.location.href = authUrl;
-    });
-  }
+  // Initialize stat options
+  initializeStatOptions();
 
   // Initialize search functionality
   const searchButton = document.getElementById("songSearchButton");
@@ -271,12 +240,6 @@ const initializeApp = () => {
       }
     });
   }
-
-  // Finally, embed the playlist
-  embedPlaylistViewer();
-
-  // Initialize stat options
-  initializeStatOptions();
 };
 
 // Separate search handling function
@@ -336,30 +299,6 @@ const displayError = (message) => {
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 // Remove any duplicate event listeners and initialization calls
-
-// Update the checkLoginStatus function
-const checkLoginStatus = () => {
-  const loginBtn = document.getElementById("spotifyLoginBtn");
-
-  if (!loginBtn) {
-    console.error("Login button not found");
-    return;
-  }
-
-  if (!accessToken) {
-    loginBtn.style.display = "flex";
-    // Add click event listener to the button
-    loginBtn.addEventListener("click", () => {
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
-        redirect_uri
-      )}&scope=${encodeURIComponent(scopes)}`;
-      window.location.href = authUrl;
-    });
-  } else {
-    loginBtn.style.display = "none";
-    fetchSpotifyData();
-  }
-};
 
 // Add the missing fetchSpotifyData function
 const fetchSpotifyData = () => {

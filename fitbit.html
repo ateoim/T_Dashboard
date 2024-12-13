@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tom's Fitbit Data</title>
+    <title>Tom's Fitbit Dashboard</title>
     <!-- Modern Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -79,132 +79,56 @@
 
     <main class="container">
       <header class="page-header">
-        <h1>Tom's Fitness Dashboard</h1>
+        <h1>Tom's Fitbit Dashboard</h1>
       </header>
 
-      <!-- Fitbit Stats Section -->
       <div class="stats-container">
-        <div class="stats-header">
-          <h2><i class="fas fa-chart-line"></i> Fitness Stats</h2>
+        <!-- Daily Steps -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-walking"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Daily Steps</h3>
+            <p id="daily-steps">Loading...</p>
+          </div>
         </div>
 
-        <div class="stats-content">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-walking"></i>
-              </div>
-              <div class="stat-info">
-                <h3>Daily Steps</h3>
-                <p class="placeholder-text">
-                  Link your Fitbit to track your daily step progress
-                </p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-heart"></i>
-              </div>
-              <div class="stat-info">
-                <h3>Heart Rate</h3>
-                <p class="placeholder-text">
-                  Monitor your real-time heart rate and zones
-                </p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-fire"></i>
-              </div>
-              <div class="stat-info">
-                <h3>Active Calories</h3>
-                <p class="placeholder-text">
-                  Track your daily calorie burn and activity level
-                </p>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-moon"></i>
-              </div>
-              <div class="stat-info">
-                <h3>Sleep Analysis</h3>
-                <p class="placeholder-text">
-                  View your sleep patterns and quality metrics
-                </p>
-              </div>
-            </div>
+        <!-- Heart Rate -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-heartbeat"></i>
           </div>
+          <div class="stat-info">
+            <h3>Heart Rate</h3>
+            <p><span id="heart-rate">Loading...</span> bpm</p>
+          </div>
+        </div>
 
-          <!-- Fitbit Connect Button -->
-          <div class="connect-section">
-            <a href="#" class="fitbit-login-btn">
-              <i class="fas fa-heartbeat"></i> Connect Fitbit
-            </a>
+        <!-- Calories -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Active Calories</h3>
+            <p><span id="calories">Loading...</span> cal</p>
+          </div>
+        </div>
+
+        <!-- Sleep -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-moon"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Sleep Duration</h3>
+            <p id="sleep-duration">Loading...</p>
           </div>
         </div>
       </div>
     </main>
 
-    <script>
-      let lastScrollTop = 0;
-      const navbar = document.querySelector(".navbar");
-      const footer = document.querySelector(".footer");
-      const scrollThreshold = 5; // Reduced threshold for faster response
-
-      window.addEventListener("scroll", () => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-
-        // Determine scroll direction
-        if (Math.abs(scrollTop - lastScrollTop) < scrollThreshold) return;
-
-        if (scrollTop > lastScrollTop && scrollTop > 50) {
-          // Reduced scroll amount needed
-          // Scrolling down
-          navbar.classList.add("hidden");
-          navbar.classList.remove("visible");
-          footer.classList.add("hidden");
-          footer.classList.remove("visible");
-        } else {
-          // Scrolling up
-          navbar.classList.add("visible");
-          navbar.classList.remove("hidden");
-          footer.classList.add("visible");
-          footer.classList.remove("hidden");
-        }
-
-        lastScrollTop = scrollTop;
-      });
-
-      // Show navbar/footer when mouse moves to top/bottom of screen
-      let mouseTimer;
-      document.addEventListener("mousemove", (e) => {
-        const windowHeight = window.innerHeight;
-
-        if (e.clientY < 60) {
-          // Top of screen
-          navbar.classList.add("visible");
-          navbar.classList.remove("hidden");
-        } else if (e.clientY > windowHeight - 60) {
-          // Bottom of screen
-          footer.classList.add("visible");
-          footer.classList.remove("hidden");
-        }
-
-        clearTimeout(mouseTimer);
-        mouseTimer = setTimeout(() => {
-          if (window.pageYOffset > 50) {
-            navbar.classList.add("hidden");
-            navbar.classList.remove("visible");
-            footer.classList.add("hidden");
-            footer.classList.remove("visible");
-          }
-        }, 1500); // Reduced timeout
-      });
-    </script>
+    <script src="fitbit.js"></script>
   </body>
 </html>
