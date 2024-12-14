@@ -11,6 +11,10 @@ const SPOTIFY_CONFIG = {
   ].join(" "),
 };
 
+const client_id = SPOTIFY_CONFIG.client_id;
+const redirect_uri = SPOTIFY_CONFIG.redirect_uri;
+const scopes = SPOTIFY_CONFIG.scopes;
+
 let accessToken = null;
 
 // Function to fetch recently played songs
@@ -309,14 +313,27 @@ const displayError = (message) => {
   }
 };
 
-// Single DOMContentLoaded event listener
+// Update the DOMContentLoaded event listener
 document.addEventListener("DOMContentLoaded", () => {
-  // First check for access token
+  // Initialize app components
+  initializeApp();
+
+  // Check for and handle authentication
   const params = new URLSearchParams(window.location.hash.substring(1));
-  accessToken = params.get("access_token");
+  const token = params.get("access_token");
+
+  if (token) {
+    // We have a token from auth redirect
+    accessToken = token;
+    localStorage.setItem("spotify_access_token", token);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  } else {
+    // Try to get token from localStorage
+    accessToken = localStorage.getItem("spotify_access_token");
+  }
 
   if (!accessToken) {
-    // Redirect to Spotify auth
+    // No token, need to authenticate
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
       redirect_uri
     )}&scope=${encodeURIComponent(scopes)}`;
@@ -324,55 +341,33 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Clear the URL hash
-  window.history.replaceState({}, document.title, window.location.pathname);
-
-  // Initialize UI components
-  const dropdownToggle = document.querySelector(".dropdown-toggle");
-  if (dropdownToggle) {
-    dropdownToggle.addEventListener("click", toggleDropdown);
-  }
-
-  // Initialize search functionality
-  const searchButton = document.getElementById("songSearchButton");
-  const searchInput = document.getElementById("songSearchInput");
-
-  if (searchButton && searchInput) {
-    searchButton.addEventListener("click", () => handleSearch(searchInput));
-    searchInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        handleSearch(searchInput);
-      }
-    });
-  }
-
-  // Initialize playlist viewer
+  // We have a token, initialize everything
   embedPlaylistViewer();
-
-  // Initialize stat options
   initializeStatOptions();
 });
 
 // Remove any duplicate event listeners and initialization calls
 
 // Add the missing fetchSpotifyData function
-const fetchSpotifyData = () => {
-  const recentSongs = document.getElementById("recentSongs");
-  const topArtistsList = document.getElementById("topArtistsList");
+const fetchSpotifyData = async () => {
+  try {
+    const recentSongs = document.getElementById("recentSongs");
+    const topArtistsList = document.getElementById("topArtistsList");
 
-  if (recentSongs) {
-    recentSongs.innerHTML = '<div class="loading">Loading...</div>';
-  }
-  if (topArtistsList) {
-    topArtistsList.innerHTML = '<div class="loading">Loading...</div>';
-  }
+    if (recentSongs) {
+      recentSongs.innerHTML = '<div class="loading">Loading...</div>';
+    }
+    if (topArtistsList) {
+      topArtistsList.innerHTML = '<div class="loading">Loading...</div>';
+    }
 
-  displayRecentlyPlayed().catch((error) =>
-    console.error("Error with recently played:", error)
-  );
-  displayTopArtists().catch((error) =>
-    console.error("Error with top artists:", error)
-  );
+    await Promise.all([displayRecentlyPlayed(), displayTopArtists()]);
+  } catch (error) {
+    console.error("Error fetching Spotify data:", error);
+    if (error.message.includes("401")) {
+      handleAuthError();
+    }
+  }
 };
 
 // Add these functions for search functionality
@@ -538,4 +533,17 @@ const handleApiError = (error, elementId, message = "Error loading data") => {
   if (element) {
     element.innerHTML = `<div class="error-message">${message}</div>`;
   }
+};
+
+// Add this function at the bottom of the file
+const handleAuthError = () => {
+  // Clear stored token
+  localStorage.removeItem("spotify_access_token");
+  accessToken = null;
+
+  // Redirect to auth
+  const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
+    redirect_uri
+  )}&scope=${encodeURIComponent(scopes)}`;
+  window.location.href = authUrl;
 };
