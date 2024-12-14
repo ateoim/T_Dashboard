@@ -35,13 +35,18 @@ const fetchDailySteps = async () => {
 
 const fetchHeartRate = async () => {
   try {
-    const data = await fetchFitbitData("activities/heart/date/today/1d.json");
+    // Change to intraday heart rate endpoint for current heart rate
+    const data = await fetchFitbitData(
+      "activities/heart/date/today/1d/1sec.json"
+    );
     console.log("Heart rate data:", data);
-    if (!data || !data["activities-heart"] || !data["activities-heart"][0]) {
-      console.error("Invalid heart rate data structure:", data);
-      return "N/A";
+
+    // Get the most recent heart rate reading
+    const heartRates = data["activities-heart-intraday"]?.dataset;
+    if (heartRates && heartRates.length > 0) {
+      return heartRates[heartRates.length - 1].value || "N/A";
     }
-    return data["activities-heart"][0].value.restingHeartRate || "N/A";
+    return "N/A";
   } catch (error) {
     console.error("Error in fetchHeartRate:", error);
     return "N/A";
@@ -71,10 +76,13 @@ const fetchCalories = async () => {
 
 const fetchSleep = async () => {
   try {
-    const data = await fetchFitbitData("sleep/date/today.json");
+    // Try to get today's sleep first
+    const today = new Date().toISOString().split("T")[0];
+    const data = await fetchFitbitData(`sleep/date/${today}.json`);
     console.log("Sleep data:", data);
-    if (!data || !data.summary) {
-      console.log("No sleep data for today, trying yesterday...");
+
+    // If no sleep data for today, try yesterday
+    if (!data?.summary?.totalMinutesAsleep) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const dateStr = yesterday.toISOString().split("T")[0];
@@ -82,6 +90,7 @@ const fetchSleep = async () => {
       console.log("Yesterday's sleep data:", yesterdayData);
       return yesterdayData?.summary || null;
     }
+
     return data.summary;
   } catch (error) {
     console.error("Error in fetchSleep:", error);
@@ -89,18 +98,116 @@ const fetchSleep = async () => {
   }
 };
 
+// Add these new functions to fetch distance data
+const fetchDailyDistance = async () => {
+  try {
+    const data = await fetchFitbitData(
+      "activities/distance/date/today/1d.json"
+    );
+    return data?.["activities-distance"][0]?.value || "N/A";
+  } catch (error) {
+    console.error("Error fetching daily distance:", error);
+    return "N/A";
+  }
+};
+
+const fetchCumulativeDistance = async () => {
+  try {
+    const today = new Date();
+    let startDate;
+    let titleText;
+
+    // If we're in 2025 or later, track from start of the year
+    if (today.getFullYear() >= 2025) {
+      startDate = `${today.getFullYear()}-01-01`;
+      titleText = `Total Distance ${today.getFullYear()}`;
+    } else {
+      startDate = "2024-12-15";
+      titleText = "Total Distance (since Dec 15)";
+    }
+
+    const todayStr = today.toISOString().split("T")[0];
+    const data = await fetchFitbitData(
+      `activities/distance/date/${startDate}/${todayStr}.json`
+    );
+
+    // Sum up all distances
+    const totalDistance = data["activities-distance"].reduce(
+      (sum, day) => sum + parseFloat(day.value),
+      0
+    );
+
+    // Format current time
+    const lastUpdated = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    // Update the value, title, and timestamp
+    const totalDistanceElement = document.getElementById("total-distance");
+    if (totalDistanceElement) {
+      totalDistanceElement.textContent = `${totalDistance.toFixed(2)} km`;
+    }
+
+    const totalDistanceTitleElement = document.getElementById(
+      "total-distance-title"
+    );
+    if (totalDistanceTitleElement) {
+      totalDistanceTitleElement.textContent = titleText;
+    }
+
+    const lastUpdatedElement = document.getElementById("last-updated");
+    if (lastUpdatedElement) {
+      lastUpdatedElement.textContent = `Last updated: ${lastUpdated}`;
+    }
+
+    return totalDistance.toFixed(2);
+  } catch (error) {
+    console.error("Error fetching cumulative distance:", error);
+    return "N/A";
+  }
+};
+
 // Function to update the UI
 const updateFitbitStats = async () => {
   try {
-    // Fetch all stats first
-    const [steps, heartRate, calories, sleep] = await Promise.all([
-      fetchDailySteps(),
-      fetchHeartRate(),
-      fetchCalories(),
-      fetchSleep(),
-    ]);
+    // Add distance to the stats being fetched
+    const [steps, heartRate, calories, sleep, distance, totalDistance] =
+      await Promise.all([
+        fetchDailySteps(),
+        fetchHeartRate(),
+        fetchCalories(),
+        fetchSleep(),
+        fetchDailyDistance(),
+        fetchCumulativeDistance(),
+      ]);
 
-    console.log("All stats fetched:", { steps, heartRate, calories, sleep });
+    console.log("All stats fetched:", {
+      steps,
+      heartRate,
+      calories,
+      sleep,
+      distance,
+      totalDistance,
+    });
+
+    // Update existing stats...
+
+    // Update distance stats
+    const distanceElement = document.getElementById("daily-distance");
+    if (distanceElement) {
+      distanceElement.textContent =
+        distance !== "N/A" ? `${distance} km` : "N/A";
+    }
+
+    const totalDistanceElement = document.getElementById("total-distance");
+    if (totalDistanceElement) {
+      totalDistanceElement.textContent =
+        totalDistance !== "N/A" ? `${totalDistance} km` : "N/A";
+    }
 
     // Update each stat if the element exists
     const stepsElement = document.getElementById("daily-steps");

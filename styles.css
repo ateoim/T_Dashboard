@@ -1801,3 +1801,19 @@ body {
 .admin-button i {
   color: var(--spotify-green);
 }
+
+/* Timestamp styling */
+.update-timestamp {
+  display: block;
+  color: var(--text-grey);
+  font-size: 0.8rem;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+
+.stat-info small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-grey);
+}
