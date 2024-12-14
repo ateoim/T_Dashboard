@@ -250,6 +250,130 @@ const updateHealthSummary = async () => {
   }
 };
 
+// Add this function to fetch 7-day activity history
+const fetchActivityHistory = async () => {
+  try {
+    const today = new Date();
+    const dates = [];
+    const stepsData = [];
+    const activeMinutesData = [];
+
+    // Get data for the last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+      dates.push(date.toLocaleDateString("en-US", { weekday: "short" }));
+
+      // Fetch steps
+      const stepsResponse = await fetchFitbitData(
+        `activities/steps/date/${dateStr}/1d.json`
+      );
+      stepsData.push(parseInt(stepsResponse["activities-steps"][0].value));
+
+      // Fetch active minutes
+      const activeResponse = await fetchFitbitData(
+        `activities/minutesVeryActive/date/${dateStr}/1d.json`
+      );
+      activeMinutesData.push(
+        parseInt(activeResponse["activities-minutesVeryActive"][0].value)
+      );
+    }
+
+    return { dates, stepsData, activeMinutesData };
+  } catch (error) {
+    console.error("Error fetching activity history:", error);
+    return null;
+  }
+};
+
+// Add this function to create and update the chart
+const updateActivityChart = async () => {
+  const data = await fetchActivityHistory();
+  if (!data) return;
+
+  const ctx = document.getElementById("activityChart").getContext("2d");
+
+  // Destroy existing chart if it exists
+  if (window.activityChart) {
+    window.activityChart.destroy();
+  }
+
+  window.activityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: data.dates,
+      datasets: [
+        {
+          label: "Steps",
+          data: data.stepsData,
+          borderColor: "#1db954",
+          backgroundColor: "rgba(29, 185, 84, 0.1)",
+          tension: 0.4,
+          fill: true,
+          yAxisID: "y",
+        },
+        {
+          label: "Active Minutes",
+          data: data.activeMinutesData,
+          borderColor: "#1ed760",
+          backgroundColor: "rgba(30, 215, 96, 0.1)",
+          tension: 0.4,
+          fill: true,
+          yAxisID: "y1",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: "index",
+      },
+      scales: {
+        y: {
+          type: "linear",
+          display: true,
+          position: "left",
+          grid: {
+            color: "rgba(255, 255, 255, 0.1)",
+          },
+          ticks: {
+            color: "#b3b3b3",
+          },
+        },
+        y1: {
+          type: "linear",
+          display: true,
+          position: "right",
+          grid: {
+            drawOnChartArea: false,
+          },
+          ticks: {
+            color: "#b3b3b3",
+          },
+        },
+        x: {
+          grid: {
+            color: "rgba(255, 255, 255, 0.1)",
+          },
+          ticks: {
+            color: "#b3b3b3",
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: "#ffffff",
+          },
+        },
+      },
+    },
+  });
+};
+
 // Update the initialization to fetch data sequentially
 const initializeDashboard = async () => {
   try {
@@ -266,6 +390,9 @@ const initializeDashboard = async () => {
 
     // Update health summary after main stats
     await updateHealthSummary();
+
+    // Add this line
+    await updateActivityChart();
   } catch (error) {
     console.error("Error initializing dashboard:", error);
   }

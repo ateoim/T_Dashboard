@@ -17,6 +17,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <aside class="sidebar">
@@ -174,6 +175,17 @@
                 <span id="movement-consistency">Loading...</span>
               </p>
             </div>
+          </div>
+        </div>
+
+        <!-- Add this new card after the Health Summary card -->
+        <div class="stat-card chart-card">
+          <div class="stat-icon">
+            <i class="fas fa-chart-area"></i>
+          </div>
+          <div class="stat-info">
+            <h3>7-Day Activity Trends</h3>
+            <canvas id="activityChart"></canvas>
           </div>
         </div>
       </div>

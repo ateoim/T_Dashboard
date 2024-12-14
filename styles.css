@@ -1861,3 +1861,23 @@ body {
   color: var(--text-grey);
   opacity: 0.8;
 }
+
+/* Chart Card Styles */
+.chart-card {
+  grid-column: span 2;
+  background: linear-gradient(
+    145deg,
+    rgba(40, 40, 40, 0.95),
+    rgba(28, 28, 28, 0.95)
+  );
+}
+
+.chart-card .stat-info {
+  width: 100%;
+}
+
+.chart-card canvas {
+  width: 100% !important;
+  height: 200px !important;
+  margin-top: 15px;
+}
