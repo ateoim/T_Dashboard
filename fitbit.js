@@ -35,18 +35,13 @@ const fetchDailySteps = async () => {
 
 const fetchHeartRate = async () => {
   try {
-    // Change to intraday heart rate endpoint for current heart rate
-    const data = await fetchFitbitData(
-      "activities/heart/date/today/1d/1sec.json"
-    );
+    // Use the resting heart rate endpoint instead
+    const data = await fetchFitbitData("activities/heart/date/today/1d.json");
     console.log("Heart rate data:", data);
 
-    // Get the most recent heart rate reading
-    const heartRates = data["activities-heart-intraday"]?.dataset;
-    if (heartRates && heartRates.length > 0) {
-      return heartRates[heartRates.length - 1].value || "N/A";
-    }
-    return "N/A";
+    // Get the resting heart rate for today
+    const restingHR = data["activities-heart"][0]?.value?.restingHeartRate;
+    return restingHR || "N/A";
   } catch (error) {
     console.error("Error in fetchHeartRate:", error);
     return "N/A";
@@ -171,6 +166,40 @@ const fetchCumulativeDistance = async () => {
   }
 };
 
+// Add this function to fetch and update the summary data
+const updateHealthSummary = async () => {
+  try {
+    // Fetch active minutes
+    const activeData = await fetchFitbitData(
+      "activities/minutesVeryActive/date/today/1d.json"
+    );
+    const activeMinutes =
+      activeData?.["activities-minutesVeryActive"][0]?.value || 0;
+
+    // Calculate step goal progress (assuming 10,000 step goal)
+    const steps = await fetchDailySteps();
+    const stepProgress = ((parseInt(steps) / 10000) * 100).toFixed(0);
+
+    // Get sleep quality if available
+    const sleep = await fetchSleep();
+    const sleepEfficiency = sleep?.efficiency || "N/A";
+
+    // Update the summary elements
+    document.getElementById(
+      "step-goal-progress"
+    ).textContent = `${stepProgress}% of daily goal`;
+    document.getElementById("sleep-quality").textContent =
+      sleepEfficiency !== "N/A"
+        ? `${sleepEfficiency}% sleep quality`
+        : "No sleep data";
+    document.getElementById(
+      "active-minutes"
+    ).textContent = `${activeMinutes} active minutes`;
+  } catch (error) {
+    console.error("Error updating health summary:", error);
+  }
+};
+
 // Function to update the UI
 const updateFitbitStats = async () => {
   try {
@@ -237,6 +266,8 @@ const updateFitbitStats = async () => {
         sleepElement.textContent = "N/A";
       }
     }
+
+    await updateHealthSummary();
   } catch (error) {
     console.error("Error updating stats:", error);
     // Handle errors more gracefully

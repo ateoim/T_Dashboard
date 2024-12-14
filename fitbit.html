@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tom's Fitbit Dashboard</title>
+    <title>Tom Daily Health Data</title>
     <!-- Modern Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -79,7 +79,7 @@
 
     <main class="container">
       <header class="page-header">
-        <h1>Tom's Fitbit Dashboard</h1>
+        <h1>Tom-Daily-Biological-Data</h1>
       </header>
 
       <div class="stats-container">
@@ -147,6 +147,30 @@
             <h3 id="total-distance-title">Total Distance (since Dec 15)</h3>
             <p id="total-distance">Loading...</p>
             <small id="last-updated" class="update-timestamp"></small>
+          </div>
+        </div>
+
+        <!-- Health Summary -->
+        <div class="stat-card summary-card">
+          <div class="stat-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Health Summary</h3>
+            <div class="summary-content">
+              <p class="summary-item">
+                <i class="fas fa-trophy"></i>
+                <span id="step-goal-progress">Loading...</span>
+              </p>
+              <p class="summary-item">
+                <i class="fas fa-bed"></i>
+                <span id="sleep-quality">Loading...</span>
+              </p>
+              <p class="summary-item">
+                <i class="fas fa-clock"></i>
+                <span id="active-minutes">Loading...</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
