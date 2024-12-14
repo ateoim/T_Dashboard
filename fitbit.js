@@ -4,9 +4,27 @@ const FITBIT_CONFIG = {
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1EyRlIiLCJzdWIiOiJCNFY4RzgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJlY2cgcnNldCByaXJuIHJveHkgcm51dCBycHJvIHJzbGUgcmNmIHJhY3QgcmxvYyBycmVzIHJ3ZWkgcmhyIHJ0ZW0iLCJleHAiOjE3MzQyMDY5MDEsImlhdCI6MTczNDE3ODEwMX0.IZNTJMVN9w0ghrPrw0zE7mlNg50SsooyzhX2DGGP8Q8",
 };
 
-// Update the fetchFitbitData function to use the static token
+// Add rate limiting and caching
+const cache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+let lastRequestTime = 0;
+const RATE_LIMIT_DELAY = 1000; // 1 second between requests
+
 const fetchFitbitData = async (endpoint) => {
   try {
+    // Check cache first
+    const cachedData = cache.get(endpoint);
+    if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
+      return cachedData.data;
+    }
+
+    // Rate limiting
+    const now = Date.now();
+    if (now - lastRequestTime < RATE_LIMIT_DELAY) {
+      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_DELAY));
+    }
+    lastRequestTime = Date.now();
+
     const response = await fetch(
       `https://api.fitbit.com/1/user/-/${endpoint}`,
       {
@@ -16,14 +34,31 @@ const fetchFitbitData = async (endpoint) => {
       }
     );
 
+    if (response.status === 429) {
+      // Rate limited - wait and retry
+      const retryAfter = response.headers.get("Retry-After") || 1;
+      await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+      return fetchFitbitData(endpoint);
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Cache the response
+    cache.set(endpoint, {
+      data,
+      timestamp: Date.now(),
+    });
+
+    return data;
   } catch (error) {
     console.error(`Error fetching ${endpoint}:`, error);
-    return null;
+    // Return cached data if available, even if expired
+    const cachedData = cache.get(endpoint);
+    return cachedData ? cachedData.data : null;
   }
 };
 
@@ -200,104 +235,78 @@ const updateHealthSummary = async () => {
   }
 };
 
-// Function to update the UI
-const updateFitbitStats = async () => {
+// Update the initialization to fetch data sequentially
+const initializeDashboard = async () => {
   try {
-    // Add distance to the stats being fetched
-    const [steps, heartRate, calories, sleep, distance, totalDistance] =
-      await Promise.all([
-        fetchDailySteps(),
-        fetchHeartRate(),
-        fetchCalories(),
-        fetchSleep(),
-        fetchDailyDistance(),
-        fetchCumulativeDistance(),
-      ]);
+    // Fetch data one at a time to avoid rate limits
+    const steps = await fetchDailySteps();
+    const heartRate = await fetchHeartRate();
+    const calories = await fetchCalories();
+    const sleep = await fetchSleep();
+    const distance = await fetchDailyDistance();
+    const totalDistance = await fetchCumulativeDistance();
 
-    console.log("All stats fetched:", {
-      steps,
-      heartRate,
-      calories,
-      sleep,
-      distance,
-      totalDistance,
-    });
+    // Update UI
+    updateUI({ steps, heartRate, calories, sleep, distance, totalDistance });
 
-    // Update existing stats...
-
-    // Update distance stats
-    const distanceElement = document.getElementById("daily-distance");
-    if (distanceElement) {
-      distanceElement.textContent =
-        distance !== "N/A" ? `${distance} km` : "N/A";
-    }
-
-    const totalDistanceElement = document.getElementById("total-distance");
-    if (totalDistanceElement) {
-      totalDistanceElement.textContent =
-        totalDistance !== "N/A" ? `${totalDistance} km` : "N/A";
-    }
-
-    // Update each stat if the element exists
-    const stepsElement = document.getElementById("daily-steps");
-    if (stepsElement) {
-      stepsElement.textContent = steps;
-    }
-
-    const heartRateElement = document.getElementById("heart-rate");
-    if (heartRateElement) {
-      heartRateElement.textContent =
-        heartRate !== "N/A" ? `${heartRate} bpm` : "N/A";
-    }
-
-    const caloriesElement = document.getElementById("calories");
-    if (caloriesElement) {
-      caloriesElement.textContent =
-        calories !== "N/A" ? `${calories} cal` : "N/A";
-    }
-
-    const sleepElement = document.getElementById("sleep-duration");
-    if (sleepElement) {
-      if (sleep && sleep.totalMinutesAsleep) {
-        const hours = Math.floor(sleep.totalMinutesAsleep / 60);
-        const minutes = sleep.totalMinutesAsleep % 60;
-        sleepElement.textContent = `${hours}h ${minutes}m`;
-      } else {
-        sleepElement.textContent = "N/A";
-      }
-    }
-
+    // Update health summary after main stats
     await updateHealthSummary();
   } catch (error) {
-    console.error("Error updating stats:", error);
-    // Handle errors more gracefully
-    const elements = [
-      "daily-steps",
-      "heart-rate",
-      "calories",
-      "sleep-duration",
-    ];
-    elements.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.textContent = "Error";
-      }
-    });
+    console.error("Error initializing dashboard:", error);
   }
 };
 
-// Initialize the dashboard
-document.addEventListener("DOMContentLoaded", () => {
-  // Show loading state
-  document.querySelectorAll(".stat-info p").forEach((p) => {
-    p.innerHTML = '<span class="loading-spinner"></span>';
+// Separate UI updates from data fetching
+const updateUI = (stats) => {
+  const { steps, heartRate, calories, sleep, distance, totalDistance } = stats;
+
+  // Update last update timestamp first
+  const lastUpdate = new Date().toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 
-  // Fetch and display stats immediately
-  updateFitbitStats();
+  const lastUpdateElement = document.getElementById("last-data-update");
+  if (lastUpdateElement) {
+    lastUpdateElement.textContent = `Last updated: ${lastUpdate}`;
+  }
 
+  // Update each element if it exists
+  const elements = {
+    "daily-steps": steps,
+    "heart-rate": heartRate !== "N/A" ? `${heartRate} bpm` : "N/A",
+    calories: calories !== "N/A" ? `${calories} cal` : "N/A",
+    "daily-distance": distance !== "N/A" ? `${distance} km` : "N/A",
+    "total-distance": totalDistance !== "N/A" ? `${totalDistance} km` : "N/A",
+  };
+
+  Object.entries(elements).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = value;
+    }
+  });
+
+  // Update sleep separately due to different format
+  const sleepElement = document.getElementById("sleep-duration");
+  if (sleepElement && sleep && sleep.totalMinutesAsleep) {
+    const hours = Math.floor(sleep.totalMinutesAsleep / 60);
+    const minutes = sleep.totalMinutesAsleep % 60;
+    sleepElement.textContent = `${hours}h ${minutes}m`;
+  } else if (sleepElement) {
+    sleepElement.textContent = "N/A";
+  }
+};
+
+// Update initialization
+document.addEventListener("DOMContentLoaded", () => {
+  initializeDashboard();
   // Update every 5 minutes
-  setInterval(updateFitbitStats, 300000);
+  setInterval(initializeDashboard, 300000);
 });
 
 // Remove the Initialize Fitbit Access button from the UI

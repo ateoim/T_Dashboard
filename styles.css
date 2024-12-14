@@ -1847,3 +1847,14 @@ body {
   color: var(--spotify-green);
   width: 20px;
 }
+
+.page-header {
+  text-align: center;
+}
+
+.page-header .update-timestamp {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--text-grey);
+  opacity: 0.8;
+}
