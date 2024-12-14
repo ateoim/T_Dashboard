@@ -1,140 +1,26 @@
 // Fitbit API configuration
 const FITBIT_CONFIG = {
-  client_id: "23Q2FR",
-  client_secret: "fdcc3d81a7ca67f6a46e578e2d022b25",
-  redirect_uri: "https://ateoim.github.io/T_Dashboard/fitbit.html",
-  auth_endpoint: "https://www.fitbit.com/oauth2/authorize",
-  token_endpoint: "https://api.fitbit.com/oauth2/token",
+  access_token:
+    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1EyRlIiLCJzdWIiOiJCWjRDUkQiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJhY3QgcnNldCByb3h5IHJwcm8gcnNsZSByaHIgcm51dCByZWNnIiwiZXhwIjoxNzA4MjU5NTk5LCJpYXQiOjE3MDgyMzA3OTl9.mFRST_vOKmQP0q_kqHIhG9q_kqHIhG9",
 };
 
-let accessToken = null;
-let refreshToken = null;
-
-// Add these functions at the beginning of fitbit.js
-const initiateOAuth = () => {
-  // Generate a random state value for security
-  const state = Math.random().toString(36).substring(7);
-  localStorage.setItem("oauth_state", state);
-
-  // Construct the authorization URL
-  const authUrl = new URL(FITBIT_CONFIG.auth_endpoint);
-  authUrl.searchParams.append("response_type", "code");
-  authUrl.searchParams.append("client_id", FITBIT_CONFIG.client_id);
-  authUrl.searchParams.append("redirect_uri", FITBIT_CONFIG.redirect_uri);
-  authUrl.searchParams.append("scope", "activity heartrate sleep profile");
-  authUrl.searchParams.append("state", state);
-
-  // Redirect to Fitbit's authorization page
-  window.location.href = authUrl.toString();
-};
-
-// Function to handle the initial token exchange
-const handleAuthCallback = async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get("code");
-  const state = urlParams.get("state");
-  const savedState = localStorage.getItem("oauth_state");
-
-  if (!code) return;
-  if (state !== savedState) {
-    console.error("State mismatch - possible CSRF attack");
-    return;
-  }
-
-  try {
-    const basicAuth = btoa(
-      `${FITBIT_CONFIG.client_id}:${FITBIT_CONFIG.client_secret}`
-    );
-    const response = await fetch(FITBIT_CONFIG.token_endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${basicAuth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `grant_type=authorization_code&code=${code}&redirect_uri=${FITBIT_CONFIG.redirect_uri}`,
-    });
-
-    if (!response.ok) {
-      throw new Error("Token exchange failed");
-    }
-
-    const data = await response.json();
-    accessToken = data.access_token;
-    refreshToken = data.refresh_token;
-    localStorage.setItem("fitbit_refresh_token", refreshToken);
-
-    // Clear the URL parameters
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    // Initialize the dashboard
-    updateFitbitStats();
-    setInterval(updateFitbitStats, 300000);
-  } catch (error) {
-    console.error("Error exchanging code for token:", error);
-  }
-};
-
-// Function to handle token refresh
-const refreshAccessToken = async () => {
-  try {
-    const basicAuth = btoa(
-      `${FITBIT_CONFIG.client_id}:${FITBIT_CONFIG.client_secret}`
-    );
-    const response = await fetch(FITBIT_CONFIG.token_endpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${basicAuth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `grant_type=refresh_token&refresh_token=${refreshToken}`,
-    });
-
-    if (!response.ok) {
-      throw new Error("Token refresh failed");
-    }
-
-    const data = await response.json();
-    accessToken = data.access_token;
-    refreshToken = data.refresh_token;
-
-    // Store new tokens
-    localStorage.setItem("fitbit_refresh_token", refreshToken);
-
-    return accessToken;
-  } catch (error) {
-    console.error("Error refreshing token:", error);
-    return null;
-  }
-};
-
-// Function to make authenticated API calls
+// Update the fetchFitbitData function to use the static token
 const fetchFitbitData = async (endpoint) => {
   try {
-    console.log(`Fetching data from endpoint: ${endpoint}`);
     const response = await fetch(
       `https://api.fitbit.com/1/user/-/${endpoint}`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${FITBIT_CONFIG.access_token}`,
         },
       }
     );
 
-    if (response.status === 401) {
-      console.log("Token expired, attempting refresh...");
-      const newToken = await refreshAccessToken();
-      if (!newToken) throw new Error("Token refresh failed");
-      return fetchFitbitData(endpoint);
-    }
-
     if (!response.ok) {
-      console.error(`Error response from ${endpoint}:`, response.status);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log(`Data received from ${endpoint}:`, data);
-    return data;
+    return await response.json();
   } catch (error) {
     console.error(`Error fetching ${endpoint}:`, error);
     return null;
@@ -254,31 +140,20 @@ const updateFitbitStats = async () => {
 
 // Initialize the dashboard
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if we're handling an OAuth callback
-  if (window.location.search.includes("code=")) {
-    handleAuthCallback();
-    return;
-  }
+  // Show loading state
+  document.querySelectorAll(".stat-info p").forEach((p) => {
+    p.innerHTML = '<span class="loading-spinner"></span>';
+  });
 
-  // Check for existing refresh token
-  refreshToken = localStorage.getItem("fitbit_refresh_token");
+  // Fetch and display stats immediately
+  updateFitbitStats();
 
-  if (refreshToken) {
-    // Refresh token and start fetching data
-    refreshAccessToken().then(() => {
-      updateFitbitStats();
-      setInterval(updateFitbitStats, 300000);
-    });
-  } else {
-    // Add an admin button to initiate OAuth
-    const adminSection = document.createElement("div");
-    adminSection.className = "admin-section";
-    adminSection.innerHTML = `
-      <button class="admin-button" onclick="initiateOAuth()">
-        <i class="fas fa-key"></i>
-        Initialize Fitbit Access
-      </button>
-    `;
-    document.querySelector(".container").appendChild(adminSection);
-  }
+  // Update every 5 minutes
+  setInterval(updateFitbitStats, 300000);
 });
+
+// Remove the Initialize Fitbit Access button from the UI
+const adminSection = document.querySelector(".admin-section");
+if (adminSection) {
+  adminSection.remove();
+}
