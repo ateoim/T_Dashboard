@@ -204,32 +204,47 @@ const fetchCumulativeDistance = async () => {
 // Add this function to fetch and update the summary data
 const updateHealthSummary = async () => {
   try {
-    // Fetch active minutes
-    const activeData = await fetchFitbitData(
-      "activities/minutesVeryActive/date/today/1d.json"
-    );
-    const activeMinutes =
-      activeData?.["activities-minutesVeryActive"][0]?.value || 0;
-
-    // Calculate step goal progress (assuming 10,000 step goal)
     const steps = await fetchDailySteps();
-    const stepProgress = ((parseInt(steps) / 10000) * 100).toFixed(0);
-
-    // Get sleep quality if available
+    const calories = await fetchCalories();
+    const activeMinutes = await fetchActiveMinutes();
     const sleep = await fetchSleep();
-    const sleepEfficiency = sleep?.efficiency || "N/A";
+    const heartRate = await fetchHeartRate();
+
+    // Calculate Energy Efficiency
+    const energyEfficiency =
+      steps !== "N/A" && calories !== "N/A"
+        ? ((parseInt(calories) / parseInt(steps)) * 100).toFixed(1)
+        : "N/A";
+
+    // Calculate Daily Rhythm Score
+    const sleepHours = sleep?.totalMinutesAsleep
+      ? sleep.totalMinutesAsleep / 60
+      : 0;
+    const rhythmScore = (
+      (sleepHours / 8) * 50 +
+      (parseInt(activeMinutes) / 30) * 30 +
+      ((70 - Math.abs(70 - parseInt(heartRate))) / 70) * 20
+    ).toFixed(0);
+
+    // Calculate Movement Consistency
+    const awakeMinutes = 24 * 60 - (sleep?.totalMinutesAsleep || 0);
+    const consistencyScore = (
+      (parseInt(activeMinutes) / awakeMinutes) *
+      100
+    ).toFixed(1);
 
     // Update the summary elements
     document.getElementById(
-      "step-goal-progress"
-    ).textContent = `${stepProgress}% of daily goal`;
-    document.getElementById("sleep-quality").textContent =
-      sleepEfficiency !== "N/A"
-        ? `${sleepEfficiency}% sleep quality`
-        : "No sleep data";
+      "energy-efficiency"
+    ).textContent = `${energyEfficiency} cal/100 steps`;
+
     document.getElementById(
-      "active-minutes"
-    ).textContent = `${activeMinutes} active minutes`;
+      "rhythm-score"
+    ).textContent = `Daily Rhythm: ${rhythmScore}%`;
+
+    document.getElementById(
+      "movement-consistency"
+    ).textContent = `${consistencyScore}% active time`;
   } catch (error) {
     console.error("Error updating health summary:", error);
   }
