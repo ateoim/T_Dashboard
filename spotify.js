@@ -15,12 +15,30 @@ let accessToken = null;
 
 // Function to fetch recently played songs
 const fetchRecentlyPlayed = async () => {
-  const response = await fetchWithSpotifyAuth(
-    "https://api.spotify.com/v1/me/player/recently-played?limit=3"
-  );
-  if (!response) return [];
-  const data = await response.json();
-  return data.items;
+  try {
+    const response = await fetch(
+      "https://api.spotify.com/v1/me/player/recently-played?limit=3",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.items;
+  } catch (error) {
+    handleApiError(
+      error,
+      "recentSongs",
+      "Failed to load recently played songs"
+    );
+    return [];
+  }
 };
 
 // Function to fetch top artists with their most listened tracks
@@ -164,11 +182,10 @@ const embedPlaylistViewer = () => {
     return;
   }
 
-  // Use the exact embed code from Spotify
   viewerElement.innerHTML = `
     <iframe 
       style="border-radius:12px" 
-      src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator" 
+      src="https://open.spotify.com/embed/playlist/3l4a9oLo9GLIb4bMm0RGZg?utm_source=generator&theme=0" 
       width="100%" 
       height="352" 
       frameBorder="0" 
@@ -262,17 +279,20 @@ const toggleDropdown = () => {
     return;
   }
 
-  dropdown.classList.toggle("active");
+  const isActive = dropdown.classList.toggle("active");
 
   if (toggleButton) {
-    toggleButton.style.transform = dropdown.classList.contains("active")
-      ? "rotate(180deg)"
-      : "rotate(0)";
+    toggleButton.style.transform = isActive ? "rotate(180deg)" : "rotate(0)";
   }
 
-  // Only fetch data when opening and if we have an access token
-  if (dropdown.classList.contains("active") && accessToken) {
-    fetchSpotifyData();
+  if (isActive) {
+    // Fetch and display data
+    displayRecentlyPlayed().catch((error) =>
+      console.error("Error displaying recently played:", error)
+    );
+    displayTopArtists().catch((error) =>
+      console.error("Error displaying top artists:", error)
+    );
   }
 };
 
@@ -291,20 +311,46 @@ const displayError = (message) => {
 
 // Single DOMContentLoaded event listener
 document.addEventListener("DOMContentLoaded", () => {
-  const token = getSpotifyToken();
+  // First check for access token
+  const params = new URLSearchParams(window.location.hash.substring(1));
+  accessToken = params.get("access_token");
 
-  if (!token && !window.location.hash.includes("access_token")) {
-    initializeSpotify();
+  if (!accessToken) {
+    // Redirect to Spotify auth
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=token&redirect_uri=${encodeURIComponent(
+      redirect_uri
+    )}&scope=${encodeURIComponent(scopes)}`;
+    window.location.href = authUrl;
     return;
   }
 
-  if (window.location.hash.includes("access_token")) {
-    initializeSpotify();
+  // Clear the URL hash
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  // Initialize UI components
+  const dropdownToggle = document.querySelector(".dropdown-toggle");
+  if (dropdownToggle) {
+    dropdownToggle.addEventListener("click", toggleDropdown);
   }
 
-  // Initialize the rest of the app
-  updateSpotifyData();
+  // Initialize search functionality
+  const searchButton = document.getElementById("songSearchButton");
+  const searchInput = document.getElementById("songSearchInput");
+
+  if (searchButton && searchInput) {
+    searchButton.addEventListener("click", () => handleSearch(searchInput));
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        handleSearch(searchInput);
+      }
+    });
+  }
+
+  // Initialize playlist viewer
   embedPlaylistViewer();
+
+  // Initialize stat options
+  initializeStatOptions();
 });
 
 // Remove any duplicate event listeners and initialization calls
@@ -484,4 +530,12 @@ const fetchWithSpotifyAuth = async (url, options = {}) => {
   }
 
   return response;
+};
+
+const handleApiError = (error, elementId, message = "Error loading data") => {
+  console.error(error);
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = `<div class="error-message">${message}</div>`;
+  }
 };
