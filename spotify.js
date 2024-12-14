@@ -1,20 +1,24 @@
 // Define your Spotify app details
-const client_id = "e2e15c5deef14339b504d97037b8abe3";
-const redirect_uri = "https://ateoim.github.io/T_Dashboard/index.html";
-const scopes =
-  "user-read-recently-played user-top-read user-modify-playback-state streaming playlist-modify-public playlist-modify-private playlist-read-collaborative";
+const SPOTIFY_CONFIG = {
+  client_id: "e2e15c5deef14339b504d97037b8abe3",
+  redirect_uri: "https://ateoim.github.io/T_Dashboard/index.html",
+  scopes: [
+    "user-read-recently-played",
+    "user-top-read",
+    "playlist-read-collaborative",
+    "playlist-modify-public",
+    "playlist-modify-private",
+  ].join(" "),
+};
+
 let accessToken = null;
 
 // Function to fetch recently played songs
 const fetchRecentlyPlayed = async () => {
-  const response = await fetch(
-    "https://api.spotify.com/v1/me/player/recently-played?limit=3",
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const response = await fetchWithSpotifyAuth(
+    "https://api.spotify.com/v1/me/player/recently-played?limit=3"
   );
+  if (!response) return [];
   const data = await response.json();
   return data.items;
 };
@@ -22,27 +26,17 @@ const fetchRecentlyPlayed = async () => {
 // Function to fetch top artists with their most listened tracks
 const fetchTopArtists = async () => {
   try {
-    const artistsResponse = await fetch(
-      "https://api.spotify.com/v1/me/top/artists?limit=3&time_range=short_term",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    const artistsResponse = await fetchWithSpotifyAuth(
+      "https://api.spotify.com/v1/me/top/artists?limit=3&time_range=short_term"
     );
+    if (!artistsResponse) return [];
     const artistsData = await artistsResponse.json();
-    console.log("Top artists data:", artistsData);
 
-    const tracksResponse = await fetch(
-      "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=short_term",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
+    const tracksResponse = await fetchWithSpotifyAuth(
+      "https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=short_term"
     );
+    if (!tracksResponse) return [];
     const tracksData = await tracksResponse.json();
-    console.log("Top tracks data:", tracksData);
 
     return artistsData.items.map((artist) => {
       const topTrack = tracksData.items.find((track) =>
@@ -296,7 +290,22 @@ const displayError = (message) => {
 };
 
 // Single DOMContentLoaded event listener
-document.addEventListener("DOMContentLoaded", initializeApp);
+document.addEventListener("DOMContentLoaded", () => {
+  const token = getSpotifyToken();
+
+  if (!token && !window.location.hash.includes("access_token")) {
+    initializeSpotify();
+    return;
+  }
+
+  if (window.location.hash.includes("access_token")) {
+    initializeSpotify();
+  }
+
+  // Initialize the rest of the app
+  updateSpotifyData();
+  embedPlaylistViewer();
+});
 
 // Remove any duplicate event listeners and initialization calls
 
@@ -419,4 +428,60 @@ const addSongToPlaylist = async (songUri) => {
     searchResults.innerHTML =
       '<div class="error-message">Failed to add song. Please try again.</div>';
   }
+};
+
+// Add this function to handle the initial auth
+const initializeSpotify = () => {
+  const params = new URLSearchParams(window.location.hash.substring(1));
+  const accessToken = params.get("access_token");
+
+  if (!accessToken) {
+    // Redirect to Spotify auth
+    const authUrl = new URL("https://accounts.spotify.com/authorize");
+    authUrl.searchParams.append("client_id", SPOTIFY_CONFIG.client_id);
+    authUrl.searchParams.append("response_type", "token");
+    authUrl.searchParams.append("redirect_uri", SPOTIFY_CONFIG.redirect_uri);
+    authUrl.searchParams.append("scope", SPOTIFY_CONFIG.scopes);
+
+    window.location.href = authUrl.toString();
+    return;
+  }
+
+  // Store the token
+  localStorage.setItem("spotify_access_token", accessToken);
+
+  // Clear the URL hash
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  return accessToken;
+};
+
+// Update the fetch functions to use the stored token
+const getSpotifyToken = () => {
+  return localStorage.getItem("spotify_access_token");
+};
+
+const fetchWithSpotifyAuth = async (url, options = {}) => {
+  const token = getSpotifyToken();
+  if (!token) {
+    initializeSpotify();
+    return;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (response.status === 401) {
+    // Token expired, clear it and re-authenticate
+    localStorage.removeItem("spotify_access_token");
+    initializeSpotify();
+    return;
+  }
+
+  return response;
 };
