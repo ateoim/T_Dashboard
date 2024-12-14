@@ -92,16 +92,7 @@ const fetchSleep = async () => {
 // Function to update the UI
 const updateFitbitStats = async () => {
   try {
-    // Show loading state
-    const stats = ["daily-steps", "heart-rate", "calories", "sleep-duration"];
-    stats.forEach((id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.innerHTML = '<span class="loading-spinner"></span>';
-      }
-    });
-
-    // Fetch all stats
+    // Fetch all stats first
     const [steps, heartRate, calories, sleep] = await Promise.all([
       fetchDailySteps(),
       fetchHeartRate(),
@@ -111,25 +102,44 @@ const updateFitbitStats = async () => {
 
     console.log("All stats fetched:", { steps, heartRate, calories, sleep });
 
-    // Update UI with results
-    document.getElementById("daily-steps").textContent = steps;
-    document.getElementById("heart-rate").textContent =
-      heartRate !== "N/A" ? `${heartRate} bpm` : "N/A";
-    document.getElementById("calories").textContent =
-      calories !== "N/A" ? `${calories} cal` : "N/A";
+    // Update each stat if the element exists
+    const stepsElement = document.getElementById("daily-steps");
+    if (stepsElement) {
+      stepsElement.textContent = steps;
+    }
 
-    if (sleep && sleep.totalMinutesAsleep) {
-      const hours = Math.floor(sleep.totalMinutesAsleep / 60);
-      const minutes = sleep.totalMinutesAsleep % 60;
-      document.getElementById(
-        "sleep-duration"
-      ).textContent = `${hours}h ${minutes}m`;
-    } else {
-      document.getElementById("sleep-duration").textContent = "N/A";
+    const heartRateElement = document.getElementById("heart-rate");
+    if (heartRateElement) {
+      heartRateElement.textContent =
+        heartRate !== "N/A" ? `${heartRate} bpm` : "N/A";
+    }
+
+    const caloriesElement = document.getElementById("calories");
+    if (caloriesElement) {
+      caloriesElement.textContent =
+        calories !== "N/A" ? `${calories} cal` : "N/A";
+    }
+
+    const sleepElement = document.getElementById("sleep-duration");
+    if (sleepElement) {
+      if (sleep && sleep.totalMinutesAsleep) {
+        const hours = Math.floor(sleep.totalMinutesAsleep / 60);
+        const minutes = sleep.totalMinutesAsleep % 60;
+        sleepElement.textContent = `${hours}h ${minutes}m`;
+      } else {
+        sleepElement.textContent = "N/A";
+      }
     }
   } catch (error) {
     console.error("Error updating stats:", error);
-    stats.forEach((id) => {
+    // Handle errors more gracefully
+    const elements = [
+      "daily-steps",
+      "heart-rate",
+      "calories",
+      "sleep-duration",
+    ];
+    elements.forEach((id) => {
       const element = document.getElementById(id);
       if (element) {
         element.textContent = "Error";
