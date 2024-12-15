@@ -1,6 +1,10 @@
 const fetch = require("node-fetch");
 
+let requestCount = 0;
+
 exports.handler = async function (event, context) {
+  requestCount++;
+  console.log(`API Request #${requestCount} in this function instance`);
   // Add detailed logging
   console.log("Function started", {
     queryParams: event.queryStringParameters,
@@ -35,7 +39,7 @@ exports.handler = async function (event, context) {
 
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken.trim()}`,
         Accept: "application/json",
       },
     });
@@ -45,7 +49,11 @@ exports.handler = async function (event, context) {
       console.error("Fitbit API error response:", {
         status: response.status,
         statusText: response.statusText,
-        errorData,
+        errorData: errorData,
+        tokenLength: accessToken.length,
+        tokenStart: accessToken.substring(0, 20),
+        tokenEnd: accessToken.substring(accessToken.length - 20),
+        headers: Object.fromEntries(response.headers.entries()),
       });
       return {
         statusCode: response.status,

@@ -7,13 +7,24 @@
 const cache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 let lastRequestTime = 0;
-const RATE_LIMIT_DELAY = 1000; // 1 second between requests
+const RATE_LIMIT_DELAY = 2000; // Increase to 2 seconds between requests
 
 // Update the base URL to point to the Netlify function
 const backendBaseUrl = "/.netlify/functions/fitbit-fetch";
 
-// Modify the fetchFitbitData function to request data from your Netlify function
+// Add rate limiting state
+let requestQueue = Promise.resolve();
+
+// Modify the fetchFitbitData function
 async function fetchFitbitData(endpoint) {
+  // Check cache first
+  const cacheKey = endpoint;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
+    return cachedData.data;
+  }
+
+  // If not in cache, fetch from API
   try {
     const response = await fetch(
       `${backendBaseUrl}?endpoint=${encodeURIComponent(endpoint)}`
@@ -26,6 +37,13 @@ async function fetchFitbitData(endpoint) {
     }
 
     const data = await response.json();
+
+    // Cache the response
+    cache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+    });
+
     return data;
   } catch (error) {
     console.error(`Detailed error for ${endpoint}:`, error);
@@ -176,13 +194,16 @@ const fetchCumulativeDistance = async () => {
 };
 
 // Add this function to fetch and update the summary data
-const updateHealthSummary = async () => {
+const updateHealthSummary = async (data) => {
   try {
-    const steps = await fetchDailySteps();
-    const calories = await fetchCalories();
+    const steps = data.steps?.["activities-steps"]?.[0]?.value || "N/A";
+    const calories =
+      data.calories?.["activities-calories"]?.[0]?.value || "N/A";
     const activeMinutes = await fetchActiveMinutes();
-    const sleep = await fetchSleep();
-    const heartRate = await fetchHeartRate();
+    const sleep = data.sleep;
+    const heartRate =
+      data.heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate ||
+      "N/A";
 
     // Calculate Energy Efficiency
     const energyEfficiency =
@@ -368,38 +389,44 @@ const initializeDashboard = async () => {
     const sleep = await fetchSleep();
     await delay(1000);
 
-    const distance = await fetchDailyDistance();
-    await delay(1000);
+    const distance = await fetchFitbitData(
+      "activities/distance/date/today/1d.json"
+    );
 
-    const totalDistance = await fetchCumulativeDistance();
-    await delay(1000);
+    // Store the data for reuse
+    const data = { steps, heartRate, calories, sleep, distance };
 
-    // Update UI with fallback values if data is null
+    // Update UI
     updateUI({
-      steps: steps?.["activities-steps"]?.[0]?.value || "N/A",
+      steps: data.steps?.["activities-steps"]?.[0]?.value || "N/A",
       heartRate:
-        heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate || "N/A",
-      calories: calories?.["activities-calories"]?.[0]?.value || "N/A",
-      sleep: sleep,
-      distance: distance,
-      totalDistance: totalDistance,
+        data.heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate ||
+        "N/A",
+      calories: data.calories?.["activities-calories"]?.[0]?.value || "N/A",
+      sleep: data.sleep,
+      distance: data.distance?.["activities-distance"]?.[0]?.value || "N/A",
     });
 
-    // Update health summary after main stats
-    await updateHealthSummary();
+    // Use cached data for health summary
+    await updateHealthSummary(data);
 
-    // Add this line
-    await updateActivityChart();
+    // Update chart less frequently
+    const shouldUpdateChart =
+      !window.lastChartUpdate ||
+      Date.now() - window.lastChartUpdate > 30 * 60 * 1000; // 30 minutes
+
+    if (shouldUpdateChart) {
+      await updateActivityChart();
+      window.lastChartUpdate = Date.now();
+    }
   } catch (error) {
     console.error("Error initializing dashboard:", error);
-    // Update UI with error state
     updateUI({
       steps: "Error",
       heartRate: "Error",
       calories: "Error",
       sleep: null,
       distance: "Error",
-      totalDistance: "Error",
     });
   }
 };
@@ -453,8 +480,8 @@ const updateUI = (stats) => {
 // Update initialization
 document.addEventListener("DOMContentLoaded", () => {
   initializeDashboard();
-  // Update every 5 minutes
-  setInterval(initializeDashboard, 300000);
+  // Update every hour
+  setInterval(initializeDashboard, 3600000);
 });
 
 // Remove the Initialize Fitbit Access button from the UI
