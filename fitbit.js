@@ -25,54 +25,40 @@ const fetchFitbitData = async (endpoint) => {
     }
     lastRequestTime = Date.now();
 
-    const response = await fetch(
-      `https://api.fitbit.com/1/user/-/${endpoint}`,
-      {
-        headers: {
-          Authorization: `Bearer ${FITBIT_CONFIG.access_token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        mode: "cors",
-      }
-    );
+    // Use JSONP approach
+    return new Promise((resolve, reject) => {
+      const callbackName =
+        "fitbitCallback_" + Math.random().toString(36).substr(2, 9);
 
-    if (response.status === 401) {
-      console.error(
-        "Fitbit token expired or invalid. Please update the token."
-      );
-      document.body.innerHTML += `
-        <div style="position: fixed; top: 20px; right: 20px; background: #ff4444; color: white; padding: 10px; border-radius: 5px;">
-          Fitbit token expired. Please update the token.
-        </div>
-      `;
-      return null;
-    }
+      // Create global callback
+      window[callbackName] = (data) => {
+        // Clean up
+        delete window[callbackName];
+        document.body.removeChild(script);
 
-    if (!response.ok) {
-      console.error(`Fitbit API Error for ${endpoint}:`, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        token: FITBIT_CONFIG.access_token.substring(0, 20) + "...",
-      });
-    }
+        // Cache the response
+        cache.set(endpoint, {
+          data,
+          timestamp: Date.now(),
+        });
 
-    const data = await response.json();
+        resolve(data);
+      };
 
-    // Cache the response
-    cache.set(endpoint, {
-      data,
-      timestamp: Date.now(),
+      // Create script element
+      const script = document.createElement("script");
+      script.src = `https://api.fitbit.com/1/user/-/${endpoint}?callback=${callbackName}&access_token=${FITBIT_CONFIG.access_token}`;
+      script.onerror = () => {
+        delete window[callbackName];
+        document.body.removeChild(script);
+        reject(new Error("Failed to load Fitbit data"));
+      };
+
+      // Add to document
+      document.body.appendChild(script);
     });
-
-    return data;
   } catch (error) {
-    console.error(`Detailed error for ${endpoint}:`, {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error(`Error fetching ${endpoint}:`, error);
     const cachedData = cache.get(endpoint);
     return cachedData ? cachedData.data : null;
   }
