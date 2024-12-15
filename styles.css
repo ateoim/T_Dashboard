@@ -1891,3 +1891,14 @@ body {
 .stat-value.error {
   color: #ff4444;
 }
+
+.stat-value.loading {
+  opacity: 0.5;
+  position: relative;
+}
+
+.stat-value.loading::after {
+  content: "...";
+  position: absolute;
+  right: -20px;
+}

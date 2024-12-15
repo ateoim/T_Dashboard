@@ -5,7 +5,7 @@
 
 // Add rate limiting and caching
 const cache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 let lastRequestTime = 0;
 const RATE_LIMIT_DELAY = 2000; // Increase to 2 seconds between requests
 
@@ -305,111 +305,160 @@ const fetchActivityHistory = async () => {
 
 // Add this function to create and update the chart
 const updateActivityChart = async () => {
-  const data = await fetchActivityHistory();
-  if (!data) return;
+  try {
+    const data = await fetchActivityHistory();
+    if (!data) return;
 
-  const ctx = document.getElementById("activityChart").getContext("2d");
+    const canvas = document.getElementById("activityChart");
+    if (!canvas) return;
 
-  // Destroy existing chart if it exists
-  if (window.activityChart) {
-    window.activityChart.destroy();
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Check if Chart is available
+    if (typeof Chart === "undefined") {
+      console.error("Chart.js is not loaded");
+      return;
+    }
+
+    // Safely destroy existing chart
+    if (
+      window.activityChart &&
+      typeof window.activityChart.destroy === "function"
+    ) {
+      window.activityChart.destroy();
+    }
+
+    window.activityChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: data.dates,
+        datasets: [
+          {
+            label: "Steps",
+            data: data.stepsData,
+            borderColor: "#1db954",
+            backgroundColor: "rgba(29, 185, 84, 0.1)",
+            tension: 0.4,
+            fill: true,
+            yAxisID: "y",
+          },
+          {
+            label: "Active Minutes",
+            data: data.activeMinutesData,
+            borderColor: "#1ed760",
+            backgroundColor: "rgba(30, 215, 96, 0.1)",
+            tension: 0.4,
+            fill: true,
+            yAxisID: "y1",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: "index",
+        },
+        scales: {
+          y: {
+            type: "linear",
+            display: true,
+            position: "left",
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
+            },
+            ticks: {
+              color: "#b3b3b3",
+            },
+          },
+          y1: {
+            type: "linear",
+            display: true,
+            position: "right",
+            grid: {
+              drawOnChartArea: false,
+            },
+            ticks: {
+              color: "#b3b3b3",
+            },
+          },
+          x: {
+            grid: {
+              color: "rgba(255, 255, 255, 0.1)",
+            },
+            ticks: {
+              color: "#b3b3b3",
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#ffffff",
+            },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error updating activity chart:", error);
   }
-
-  window.activityChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: data.dates,
-      datasets: [
-        {
-          label: "Steps",
-          data: data.stepsData,
-          borderColor: "#1db954",
-          backgroundColor: "rgba(29, 185, 84, 0.1)",
-          tension: 0.4,
-          fill: true,
-          yAxisID: "y",
-        },
-        {
-          label: "Active Minutes",
-          data: data.activeMinutesData,
-          borderColor: "#1ed760",
-          backgroundColor: "rgba(30, 215, 96, 0.1)",
-          tension: 0.4,
-          fill: true,
-          yAxisID: "y1",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: "index",
-      },
-      scales: {
-        y: {
-          type: "linear",
-          display: true,
-          position: "left",
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)",
-          },
-          ticks: {
-            color: "#b3b3b3",
-          },
-        },
-        y1: {
-          type: "linear",
-          display: true,
-          position: "right",
-          grid: {
-            drawOnChartArea: false,
-          },
-          ticks: {
-            color: "#b3b3b3",
-          },
-        },
-        x: {
-          grid: {
-            color: "rgba(255, 255, 255, 0.1)",
-          },
-          ticks: {
-            color: "#b3b3b3",
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: "#ffffff",
-          },
-        },
-      },
-    },
-  });
 };
 
-// Update initialization to be less aggressive
+function updateLoadingState(isLoading) {
+  const elements = document.querySelectorAll(".stat-value");
+  elements.forEach((element) => {
+    if (isLoading) {
+      element.classList.add("loading");
+    } else {
+      element.classList.remove("loading");
+    }
+  });
+}
+
+// Add these constants at the top
+const ENDPOINTS = {
+  steps: "activities/steps/date/today/1d.json",
+  heart: "activities/heart/date/today/1d.json",
+  calories: "activities/calories/date/today/1d.json",
+  sleep: "sleep/date/2024-12-15.json",
+  distance: "activities/distance/date/today/1d.json",
+};
+
+// Update initializeDashboard to be more efficient
 const initializeDashboard = async () => {
   try {
-    // First, try to load from cache
+    updateLoadingState(true);
     let data = {};
-    const endpoints = [
-      "activities/steps/date/today/1d.json",
-      "activities/heart/date/today/1d.json",
-      "activities/calories/date/today/1d.json",
-      "sleep/date/2024-12-15.json",
-      "activities/distance/date/today/1d.json",
-    ];
 
-    // Try to load each endpoint
-    for (const endpoint of endpoints) {
-      const result = await fetchFitbitData(endpoint);
-      if (result) {
-        data[endpoint.split("/")[1]] = result;
+    // First, try to get all data from cache
+    Object.entries(ENDPOINTS).forEach(([key, endpoint]) => {
+      const cachedData = cache.get(endpoint);
+      if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
+        data[key] = cachedData.data;
       }
-      await delay(2000); // Wait 2 seconds between requests
+    });
+
+    // If we're not rate limited, fetch missing data
+    if (Date.now() >= rateLimitReset) {
+      for (const [key, endpoint] of Object.entries(ENDPOINTS)) {
+        // Only fetch if we don't have cached data
+        if (!data[key]) {
+          const result = await fetchFitbitData(endpoint);
+          if (result) {
+            data[key] = result;
+            // Cache the result
+            cache.set(endpoint, {
+              data: result,
+              timestamp: Date.now(),
+            });
+          }
+          // Wait longer between requests
+          await delay(3000);
+        }
+      }
     }
 
     // Update UI with whatever data we have
@@ -422,22 +471,26 @@ const initializeDashboard = async () => {
       distance: data.distance?.["activities-distance"]?.[0]?.value || "N/A",
     });
 
-    // Only update health summary if we're not rate limited
-    if (Date.now() >= rateLimitReset) {
+    // Only update health summary and chart if we have all data and aren't rate limited
+    if (
+      Date.now() >= rateLimitReset &&
+      Object.keys(data).length === Object.keys(ENDPOINTS).length
+    ) {
       await updateHealthSummary(data);
-    }
 
-    // Only update chart occasionally
-    const shouldUpdateChart =
-      !window.lastChartUpdate ||
-      Date.now() - window.lastChartUpdate > 60 * 60 * 1000; // Once per hour
+      const shouldUpdateChart =
+        !window.lastChartUpdate ||
+        Date.now() - window.lastChartUpdate > 60 * 60 * 1000;
 
-    if (shouldUpdateChart && Date.now() >= rateLimitReset) {
-      await updateActivityChart();
-      window.lastChartUpdate = Date.now();
+      if (shouldUpdateChart) {
+        await updateActivityChart();
+        window.lastChartUpdate = Date.now();
+      }
     }
   } catch (error) {
     console.error("Error initializing dashboard:", error);
+  } finally {
+    updateLoadingState(false);
   }
 };
 
