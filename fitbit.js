@@ -1,8 +1,7 @@
 // Fitbit API configuration
-const FITBIT_CONFIG = {
-  access_token:
-    "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1EyRlIiLCJzdWIiOiJCNFY4RzgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJyc29jIHJlY2cgcnNldCByaXJuIHJveHkgcm51dCBycHJvIHJzbGUgcmNmIHJhY3QgcmxvYyBycmVzIHJ3ZWkgcmhyIHJ0ZW0iLCJleHAiOjE3MzQyMDY5MDEsImlhdCI6MTczNDE3ODEwMX0.IZNTJMVN9w0ghrPrw0zE7mlNg50SsooyzhX2DGGP8Q8",
-};
+// const FITBIT_CONFIG = {
+//   access_token: "your_access_token",
+// };
 
 // Add rate limiting and caching
 const cache = new Map();
@@ -10,59 +9,26 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 let lastRequestTime = 0;
 const RATE_LIMIT_DELAY = 1000; // 1 second between requests
 
-const fetchFitbitData = async (endpoint) => {
+// Update the base URL to point to the Netlify function
+const backendBaseUrl = "/.netlify/functions/fitbit-fetch";
+
+// Modify the fetchFitbitData function to request data from your Netlify function
+async function fetchFitbitData(endpoint) {
   try {
-    // Check cache first
-    const cachedData = cache.get(endpoint);
-    if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
-      return cachedData.data;
+    const response = await fetch(
+      `${backendBaseUrl}?endpoint=${encodeURIComponent(endpoint)}`
+    );
+    if (!response.ok) {
+      console.error(`Error fetching ${endpoint}:`, response.statusText);
+      return null;
     }
-
-    // Rate limiting
-    const now = Date.now();
-    if (now - lastRequestTime < RATE_LIMIT_DELAY) {
-      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_DELAY));
-    }
-    lastRequestTime = Date.now();
-
-    // Use JSONP approach
-    return new Promise((resolve, reject) => {
-      const callbackName =
-        "fitbitCallback_" + Math.random().toString(36).substr(2, 9);
-
-      // Create global callback
-      window[callbackName] = (data) => {
-        // Clean up
-        delete window[callbackName];
-        document.body.removeChild(script);
-
-        // Cache the response
-        cache.set(endpoint, {
-          data,
-          timestamp: Date.now(),
-        });
-
-        resolve(data);
-      };
-
-      // Create script element
-      const script = document.createElement("script");
-      script.src = `https://api.fitbit.com/1/user/-/${endpoint}?callback=${callbackName}&access_token=${FITBIT_CONFIG.access_token}`;
-      script.onerror = () => {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        reject(new Error("Failed to load Fitbit data"));
-      };
-
-      // Add to document
-      document.body.appendChild(script);
-    });
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
-    const cachedData = cache.get(endpoint);
-    return cachedData ? cachedData.data : null;
+    console.error(`Detailed error for ${endpoint}:`, error);
+    return null;
   }
-};
+}
 
 // Updated data fetching functions
 const fetchDailySteps = async () => {
