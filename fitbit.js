@@ -15,39 +15,60 @@ const backendBaseUrl = "/.netlify/functions/fitbit-fetch";
 // Add rate limiting state
 let requestQueue = Promise.resolve();
 
-// Modify the fetchFitbitData function
+// Add rate limit handling
+let rateLimitReset = 0;
+
+// Modify fetchFitbitData to handle rate limits
 async function fetchFitbitData(endpoint) {
+  // Check if we're rate limited
+  if (Date.now() < rateLimitReset) {
+    console.log(
+      `Rate limited, waiting ${Math.ceil(
+        (rateLimitReset - Date.now()) / 1000
+      )} seconds`
+    );
+    const cachedData = cache.get(endpoint);
+    return cachedData?.data || null;
+  }
+
   // Check cache first
-  const cacheKey = endpoint;
-  const cachedData = cache.get(cacheKey);
+  const cachedData = cache.get(endpoint);
   if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
     return cachedData.data;
   }
 
-  // If not in cache, fetch from API
   try {
     const response = await fetch(
       `${backendBaseUrl}?endpoint=${encodeURIComponent(endpoint)}`
     );
 
+    if (response.status === 429) {
+      // Get reset time from headers
+      const resetSeconds = parseInt(
+        response.headers.get("fitbit-rate-limit-reset") || "3600"
+      );
+      rateLimitReset = Date.now() + resetSeconds * 1000;
+      console.log(`Rate limited, will reset in ${resetSeconds} seconds`);
+      return cachedData?.data || null;
+    }
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error(`Error fetching ${endpoint}:`, errorData);
-      return null;
+      console.error(`Error fetching ${endpoint}:`, response.statusText);
+      return cachedData?.data || null;
     }
 
     const data = await response.json();
 
     // Cache the response
-    cache.set(cacheKey, {
+    cache.set(endpoint, {
       data,
       timestamp: Date.now(),
     });
 
     return data;
   } catch (error) {
-    console.error(`Detailed error for ${endpoint}:`, error);
-    return null;
+    console.error(`Error fetching ${endpoint}:`, error);
+    return cachedData?.data || null;
   }
 }
 
@@ -369,65 +390,54 @@ const updateActivityChart = async () => {
   });
 };
 
-// Update the initialization to fetch data sequentially
+// Update initialization to be less aggressive
 const initializeDashboard = async () => {
   try {
-    // Fetch data sequentially with delays
-    const steps = await fetchFitbitData("activities/steps/date/today/1d.json");
-    await delay(1000);
+    // First, try to load from cache
+    let data = {};
+    const endpoints = [
+      "activities/steps/date/today/1d.json",
+      "activities/heart/date/today/1d.json",
+      "activities/calories/date/today/1d.json",
+      "sleep/date/2024-12-15.json",
+      "activities/distance/date/today/1d.json",
+    ];
 
-    const heartRate = await fetchFitbitData(
-      "activities/heart/date/today/1d.json"
-    );
-    await delay(1000);
+    // Try to load each endpoint
+    for (const endpoint of endpoints) {
+      const result = await fetchFitbitData(endpoint);
+      if (result) {
+        data[endpoint.split("/")[1]] = result;
+      }
+      await delay(2000); // Wait 2 seconds between requests
+    }
 
-    const calories = await fetchFitbitData(
-      "activities/calories/date/today/1d.json"
-    );
-    await delay(1000);
-
-    const sleep = await fetchSleep();
-    await delay(1000);
-
-    const distance = await fetchFitbitData(
-      "activities/distance/date/today/1d.json"
-    );
-
-    // Store the data for reuse
-    const data = { steps, heartRate, calories, sleep, distance };
-
-    // Update UI
+    // Update UI with whatever data we have
     updateUI({
       steps: data.steps?.["activities-steps"]?.[0]?.value || "N/A",
       heartRate:
-        data.heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate ||
-        "N/A",
+        data.heart?.["activities-heart"]?.[0]?.value?.restingHeartRate || "N/A",
       calories: data.calories?.["activities-calories"]?.[0]?.value || "N/A",
       sleep: data.sleep,
       distance: data.distance?.["activities-distance"]?.[0]?.value || "N/A",
     });
 
-    // Use cached data for health summary
-    await updateHealthSummary(data);
+    // Only update health summary if we're not rate limited
+    if (Date.now() >= rateLimitReset) {
+      await updateHealthSummary(data);
+    }
 
-    // Update chart less frequently
+    // Only update chart occasionally
     const shouldUpdateChart =
       !window.lastChartUpdate ||
-      Date.now() - window.lastChartUpdate > 30 * 60 * 1000; // 30 minutes
+      Date.now() - window.lastChartUpdate > 60 * 60 * 1000; // Once per hour
 
-    if (shouldUpdateChart) {
+    if (shouldUpdateChart && Date.now() >= rateLimitReset) {
       await updateActivityChart();
       window.lastChartUpdate = Date.now();
     }
   } catch (error) {
     console.error("Error initializing dashboard:", error);
-    updateUI({
-      steps: "Error",
-      heartRate: "Error",
-      calories: "Error",
-      sleep: null,
-      distance: "Error",
-    });
   }
 };
 
@@ -477,7 +487,7 @@ const updateUI = (stats) => {
   }
 };
 
-// Update initialization
+// Update less frequently
 document.addEventListener("DOMContentLoaded", () => {
   initializeDashboard();
   // Update every hour
