@@ -25,21 +25,27 @@ const fetchFitbitData = async (endpoint) => {
     }
     lastRequestTime = Date.now();
 
-    // Use CORS proxy
-    const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
     const response = await fetch(
-      `${CORS_PROXY}https://api.fitbit.com/1/user/-/${endpoint}`,
+      `https://api.fitbit.com/1/user/-/${endpoint}`,
       {
         headers: {
           Authorization: `Bearer ${FITBIT_CONFIG.access_token}`,
-          Origin: "https://ateoim.github.io",
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
+        mode: "cors",
       }
     );
 
     if (response.status === 401) {
-      // Token expired, need to refresh
-      console.error("Token expired - please refresh token");
+      console.error(
+        "Fitbit token expired or invalid. Please update the token."
+      );
+      document.body.innerHTML += `
+        <div style="position: fixed; top: 20px; right: 20px; background: #ff4444; color: white; padding: 10px; border-radius: 5px;">
+          Fitbit token expired. Please update the token.
+        </div>
+      `;
       return null;
     }
 
@@ -48,15 +54,8 @@ const fetchFitbitData = async (endpoint) => {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries()),
-        token: FITBIT_CONFIG.access_token.substring(0, 20) + "...", // Log part of token safely
+        token: FITBIT_CONFIG.access_token.substring(0, 20) + "...",
       });
-
-      if (response.status === 429) {
-        const retryAfter = response.headers.get("Retry-After") || 1;
-        console.log(`Rate limited, waiting ${retryAfter} seconds`);
-        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        return fetchFitbitData(endpoint);
-      }
     }
 
     const data = await response.json();
