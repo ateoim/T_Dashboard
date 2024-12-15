@@ -25,24 +25,38 @@ const fetchFitbitData = async (endpoint) => {
     }
     lastRequestTime = Date.now();
 
+    // Use CORS proxy
+    const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
     const response = await fetch(
-      `https://api.fitbit.com/1/user/-/${endpoint}`,
+      `${CORS_PROXY}https://api.fitbit.com/1/user/-/${endpoint}`,
       {
         headers: {
           Authorization: `Bearer ${FITBIT_CONFIG.access_token}`,
+          Origin: "https://ateoim.github.io",
         },
       }
     );
 
-    if (response.status === 429) {
-      // Rate limited - wait and retry
-      const retryAfter = response.headers.get("Retry-After") || 1;
-      await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-      return fetchFitbitData(endpoint);
+    if (response.status === 401) {
+      // Token expired, need to refresh
+      console.error("Token expired - please refresh token");
+      return null;
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error(`Fitbit API Error for ${endpoint}:`, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        token: FITBIT_CONFIG.access_token.substring(0, 20) + "...", // Log part of token safely
+      });
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After") || 1;
+        console.log(`Rate limited, waiting ${retryAfter} seconds`);
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        return fetchFitbitData(endpoint);
+      }
     }
 
     const data = await response.json();
@@ -55,8 +69,11 @@ const fetchFitbitData = async (endpoint) => {
 
     return data;
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
-    // Return cached data if available, even if expired
+    console.error(`Detailed error for ${endpoint}:`, {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     const cachedData = cache.get(endpoint);
     return cachedData ? cachedData.data : null;
   }
@@ -456,3 +473,15 @@ const adminSection = document.querySelector(".admin-section");
 if (adminSection) {
   adminSection.remove();
 }
+
+const fetchActiveMinutes = async () => {
+  try {
+    const data = await fetchFitbitData(
+      "activities/minutesVeryActive/date/today/1d.json"
+    );
+    return data?.["activities-minutesVeryActive"][0]?.value || "0";
+  } catch (error) {
+    console.error("Error fetching active minutes:", error);
+    return "0";
+  }
+};
