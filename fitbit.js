@@ -18,10 +18,13 @@ async function fetchFitbitData(endpoint) {
     const response = await fetch(
       `${backendBaseUrl}?endpoint=${encodeURIComponent(endpoint)}`
     );
+
     if (!response.ok) {
-      console.error(`Error fetching ${endpoint}:`, response.statusText);
+      const errorData = await response.json();
+      console.error(`Error fetching ${endpoint}:`, errorData);
       return null;
     }
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -29,6 +32,9 @@ async function fetchFitbitData(endpoint) {
     return null;
   }
 }
+
+// Add a delay between requests to avoid rate limiting
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Updated data fetching functions
 const fetchDailySteps = async () => {
@@ -345,16 +351,39 @@ const updateActivityChart = async () => {
 // Update the initialization to fetch data sequentially
 const initializeDashboard = async () => {
   try {
-    // Fetch data one at a time to avoid rate limits
-    const steps = await fetchDailySteps();
-    const heartRate = await fetchHeartRate();
-    const calories = await fetchCalories();
-    const sleep = await fetchSleep();
-    const distance = await fetchDailyDistance();
-    const totalDistance = await fetchCumulativeDistance();
+    // Fetch data sequentially with delays
+    const steps = await fetchFitbitData("activities/steps/date/today/1d.json");
+    await delay(1000);
 
-    // Update UI
-    updateUI({ steps, heartRate, calories, sleep, distance, totalDistance });
+    const heartRate = await fetchFitbitData(
+      "activities/heart/date/today/1d.json"
+    );
+    await delay(1000);
+
+    const calories = await fetchFitbitData(
+      "activities/calories/date/today/1d.json"
+    );
+    await delay(1000);
+
+    const sleep = await fetchSleep();
+    await delay(1000);
+
+    const distance = await fetchDailyDistance();
+    await delay(1000);
+
+    const totalDistance = await fetchCumulativeDistance();
+    await delay(1000);
+
+    // Update UI with fallback values if data is null
+    updateUI({
+      steps: steps?.["activities-steps"]?.[0]?.value || "N/A",
+      heartRate:
+        heartRate?.["activities-heart"]?.[0]?.value?.restingHeartRate || "N/A",
+      calories: calories?.["activities-calories"]?.[0]?.value || "N/A",
+      sleep: sleep,
+      distance: distance,
+      totalDistance: totalDistance,
+    });
 
     // Update health summary after main stats
     await updateHealthSummary();
@@ -363,6 +392,15 @@ const initializeDashboard = async () => {
     await updateActivityChart();
   } catch (error) {
     console.error("Error initializing dashboard:", error);
+    // Update UI with error state
+    updateUI({
+      steps: "Error",
+      heartRate: "Error",
+      calories: "Error",
+      sleep: null,
+      distance: "Error",
+      totalDistance: "Error",
+    });
   }
 };
 

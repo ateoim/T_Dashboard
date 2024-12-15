@@ -1881,3 +1881,13 @@ body {
   height: 200px !important;
   margin-top: 15px;
 }
+
+.stat-error {
+  color: #ff4444;
+  font-size: 0.9em;
+  margin-top: 5px;
+}
+
+.stat-value.error {
+  color: #ff4444;
+}
