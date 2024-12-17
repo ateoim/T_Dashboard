@@ -11,21 +11,6 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-[[redirects]]
-  from = "/"
-  to = "/home.html"
-  status = 301
-
-[[redirects]]
-  from = "/fitbit"
-  to = "/fitbit.html"
-  status = 301
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
 [functions.fitbit-fetch]
   schedule = "0 0 */13 * *"
 
