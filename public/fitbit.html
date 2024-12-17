@@ -1,16 +1,206 @@
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM loaded, initializing dashboard...");
-    initializeDashboard().catch((error) => {
-      console.error("Failed to initialize dashboard:", error);
-    });
-  });
-</script>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Access-Control-Allow-Origin" content="*" />
+    <meta
+      http-equiv="Access-Control-Allow-Methods"
+      content="GET, POST, OPTIONS"
+    />
+    <meta
+      http-equiv="Access-Control-Allow-Headers"
+      content="Content-Type, Authorization"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tom Daily Health Data</title>
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <!-- Main Navigation -->
+      <nav class="sidebar-nav">
+        <a href="home.html" class="sidebar-link" id="home-link">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="fitbit.html" class="sidebar-link active" id="fitbit-link">
+          <i class="fas fa-heartbeat"></i>
+          <span>Fitbit</span>
+        </a>
+        <a href="index.html" class="sidebar-link" id="spotify-link">
+          <i class="fab fa-spotify"></i>
+          <span>Spotify</span>
+        </a>
+      </nav>
 
-<nav class="sidebar-nav">
-  <a href="index.html" class="sidebar-link" id="home-link">
-    <i class="fas fa-home"></i>
-    <span>Home</span>
-  </a>
-  <!-- ... other links ... -->
-</nav>
+      <!-- Social Links -->
+      <div class="sidebar-social">
+        <a
+          href="https://x.com/greywizardtea"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fa-brands fa-x"></i>
+          <span>Twitter</span>
+        </a>
+        <a
+          href="https://www.instagram.com/grywzrd/"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-instagram"></i>
+          <span>Instagram</span>
+        </a>
+        <a
+          href="https://soundcloud.com/greywizardtea"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-soundcloud"></i>
+          <span>SoundCloud</span>
+        </a>
+        <a
+          href="https://github.com/yourusername"
+          class="sidebar-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fab fa-github"></i>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <main class="container">
+      <header class="page-header">
+        <h1>Tom-Daily-Biological-Data</h1>
+        <p id="last-data-update" class="update-timestamp">
+          Last updated: Loading...
+        </p>
+      </header>
+
+      <div class="stats-container">
+        <!-- Daily Steps -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-walking"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Daily Steps</h3>
+            <p id="daily-steps" class="stat-value">Loading...</p>
+            <p class="stat-error" style="display: none">Unable to load data</p>
+          </div>
+        </div>
+
+        <!-- Heart Rate -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Heart Rate</h3>
+            <p id="heart-rate">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Calories -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Active Calories</h3>
+            <p id="calories">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Sleep -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-moon"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Sleep Duration</h3>
+            <p id="sleep-duration">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Daily Distance -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-route"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Today's Distance</h3>
+            <p id="daily-distance">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Total Distance -->
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-road"></i>
+          </div>
+          <div class="stat-info">
+            <h3 id="total-distance-title">Total Distance (since Dec 15)</h3>
+            <p id="total-distance">Loading...</p>
+            <small id="last-updated" class="update-timestamp"></small>
+          </div>
+        </div>
+
+        <!-- Health Summary -->
+        <div class="stat-card summary-card">
+          <div class="stat-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="stat-info">
+            <h3>Health Summary</h3>
+            <div class="summary-content">
+              <p class="summary-item">
+                <i class="fas fa-bolt"></i>
+                <span id="energy-efficiency">Loading...</span>
+              </p>
+              <p class="summary-item">
+                <i class="fas fa-sync"></i>
+                <span id="rhythm-score">Loading...</span>
+              </p>
+              <p class="summary-item">
+                <i class="fas fa-chart-line"></i>
+                <span id="movement-consistency">Loading...</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add this new card after the Health Summary card -->
+        <div class="stat-card chart-card">
+          <div class="stat-icon">
+            <i class="fas fa-chart-area"></i>
+          </div>
+          <div class="stat-info">
+            <h3>7-Day Activity Trends</h3>
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="fitbit.js"></script>
+  </body>
+</html>
