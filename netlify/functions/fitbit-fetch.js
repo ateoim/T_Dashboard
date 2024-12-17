@@ -165,27 +165,65 @@ const scheduledHandler = async (event) => {
 };
 
 exports.handler = async (event) => {
-  // Always log the type of request, regardless of type
-  console.log("========== FUNCTION START ==========");
-  console.log("Event type:", event.type || "regular HTTP request");
-  console.log("HTTP method:", event.httpMethod);
-  console.log("Path:", event.path);
-  console.log("Query parameters:", event.queryStringParameters);
+  // Force immediate logging at the start
+  console.log("========== FITBIT FETCH START ==========");
+  console.log("Request details:", {
+    method: event.httpMethod,
+    path: event.path,
+    params: event.queryStringParameters,
+  });
 
-  // Handle both scheduled and HTTP requests
-  if (event.httpMethod === "GET") {
-    // This is a regular API request from the browser
-    console.log("Processing API request");
-    return apiHandler(event);
-  } else if (event.type === "scheduled") {
-    // This is a scheduled token refresh
-    console.log("Processing scheduled token refresh");
-    return scheduledHandler(event);
-  } else {
-    console.log("Unknown request type");
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "Unknown request type" }),
+  try {
+    // Check environment variables immediately
+    const envCheck = {
+      hasAccessToken: !!process.env.FITBIT_ACCESS_TOKEN,
+      hasClientId: !!process.env.FITBIT_CLIENT_ID,
+      hasClientSecret: !!process.env.FITBIT_CLIENT_SECRET,
+      hasRefreshToken: !!process.env.FITBIT_REFRESH_TOKEN,
+      hasNetlifySiteId: !!process.env.NETLIFY_SITE_ID,
+      hasNetlifyApiToken: !!process.env.NETLIFY_API_TOKEN,
     };
+
+    console.log("Environment check:", envCheck);
+
+    // If any required variables are missing, fail fast
+    const missingVars = Object.entries(envCheck)
+      .filter(([_, exists]) => !exists)
+      .map(([name]) => name);
+
+    if (missingVars.length > 0) {
+      throw new Error(
+        `Missing required environment variables: ${missingVars.join(", ")}`
+      );
+    }
+
+    // Continue with normal request handling
+    if (event.httpMethod === "GET") {
+      return apiHandler(event);
+    } else if (event.type === "scheduled") {
+      return scheduledHandler(event);
+    }
+
+    throw new Error(`Unsupported request type: ${event.httpMethod}`);
+  } catch (error) {
+    console.error("========== FUNCTION ERROR ==========");
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    return {
+      statusCode: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        error: "Function execution failed",
+        details: error.message,
+      }),
+    };
+  } finally {
+    console.log("========== FITBIT FETCH END ==========");
   }
 };
