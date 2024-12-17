@@ -29,17 +29,36 @@ const refreshAccessToken = async () => {
       console.error("Token refresh failed:", {
         status: response.status,
         statusText: response.statusText,
-        errorDetails: errorData.errors[0],
-        refreshToken: process.env.FITBIT_REFRESH_TOKEN.substring(0, 10) + "...",
+        errorMessage: errorData.errors?.[0]?.message,
+        errorType: errorData.errors?.[0]?.errorType,
       });
       throw new Error(
         `Failed to refresh token: ${response.status} ${response.statusText} - ${
-          errorData.errors[0]?.message || "Unknown error"
+          errorData.errors?.[0]?.message || "Unknown error"
         }`
       );
     }
 
     const data = await response.json();
+
+    // Update Netlify environment variables with new tokens
+    await fetch(
+      "https://api.netlify.com/api/v1/sites/" +
+        process.env.NETLIFY_SITE_ID +
+        "/env",
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${process.env.NETLIFY_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          FITBIT_ACCESS_TOKEN: data.access_token,
+          FITBIT_REFRESH_TOKEN: data.refresh_token,
+        }),
+      }
+    );
+
     return data.access_token;
   } catch (error) {
     console.error("Token refresh error:", error);
@@ -47,7 +66,8 @@ const refreshAccessToken = async () => {
   }
 };
 
-const handler = async (event) => {
+// Main handler for API requests
+const apiHandler = async (event) => {
   try {
     let accessToken = process.env.FITBIT_ACCESS_TOKEN;
 
@@ -111,4 +131,29 @@ const handler = async (event) => {
   }
 };
 
-exports.handler = handler;
+// Scheduled handler for token refresh
+const scheduledHandler = async (event) => {
+  try {
+    console.log("Running scheduled token refresh");
+    await refreshAccessToken();
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Token refresh successful" }),
+    };
+  } catch (error) {
+    console.error("Scheduled refresh failed:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Token refresh failed" }),
+    };
+  }
+};
+
+exports.handler = async (event) => {
+  // Check if this is a scheduled event
+  if (event.type === "scheduled") {
+    return scheduledHandler(event);
+  }
+  // Otherwise handle as normal API request
+  return apiHandler(event);
+};
