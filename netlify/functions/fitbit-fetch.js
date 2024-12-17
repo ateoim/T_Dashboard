@@ -1,15 +1,9 @@
 const fetch = require("node-fetch");
 
-let requestCount = 0;
-
 const refreshAccessToken = async () => {
-  try {
-    console.log("Attempting to refresh token with:", {
-      clientIdExists: !!process.env.FITBIT_CLIENT_ID,
-      clientSecretExists: !!process.env.FITBIT_CLIENT_SECRET,
-      refreshTokenExists: !!process.env.FITBIT_REFRESH_TOKEN,
-    });
+  console.log("Attempting to refresh token...");
 
+  try {
     const response = await fetch("https://api.fitbit.com/oauth2/token", {
       method: "POST",
       headers: {
@@ -26,14 +20,8 @@ const refreshAccessToken = async () => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Token refresh failed:", {
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage: errorData.errors?.[0]?.message,
-        errorType: errorData.errors?.[0]?.errorType,
-      });
       throw new Error(
-        `Failed to refresh token: ${response.status} ${response.statusText} - ${
+        `Token refresh failed: ${response.status} - ${
           errorData.errors?.[0]?.message || "Unknown error"
         }`
       );
@@ -41,11 +29,9 @@ const refreshAccessToken = async () => {
 
     const data = await response.json();
 
-    // Update Netlify environment variables with new tokens
+    // Update environment variables with new tokens
     await fetch(
-      "https://api.netlify.com/api/v1/sites/" +
-        process.env.NETLIFY_SITE_ID +
-        "/env",
+      `https://api.netlify.com/api/v1/sites/${process.env.NETLIFY_SITE_ID}/env`,
       {
         method: "PATCH",
         headers: {
@@ -66,106 +52,7 @@ const refreshAccessToken = async () => {
   }
 };
 
-// Main handler for API requests
-const apiHandler = async (event) => {
-  try {
-    if (!event.queryStringParameters?.endpoint) {
-      console.error("No endpoint provided in query parameters");
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "No endpoint provided" }),
-      };
-    }
-
-    let accessToken = process.env.FITBIT_ACCESS_TOKEN;
-
-    console.log("Debug info:", {
-      hasAccessToken: !!accessToken,
-      endpoint: event.queryStringParameters.endpoint,
-      hasClientId: !!process.env.FITBIT_CLIENT_ID,
-      hasClientSecret: !!process.env.FITBIT_CLIENT_SECRET,
-      hasRefreshToken: !!process.env.FITBIT_REFRESH_TOKEN,
-      hasNetlifySiteId: !!process.env.NETLIFY_SITE_ID,
-      hasNetlifyApiToken: !!process.env.NETLIFY_API_TOKEN,
-    });
-
-    const fetchWithToken = async (token) => {
-      const url = `https://api.fitbit.com/1/user/-/${event.queryStringParameters.endpoint}`;
-      console.log("Fetching from:", url);
-
-      try {
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 401) {
-          console.log("Token expired, attempting refresh");
-          const newToken = await refreshAccessToken();
-          return fetchWithToken(newToken);
-        }
-
-        const data = await response.json();
-        console.log("Response data:", data);
-        return data;
-      } catch (fetchError) {
-        console.error("Fetch error:", fetchError);
-        throw fetchError;
-      }
-    };
-
-    const data = await fetchWithToken(accessToken);
-
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    };
-  } catch (error) {
-    console.error("Handler error:", {
-      message: error.message,
-      stack: error.stack,
-      type: error.constructor.name,
-    });
-    return {
-      statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        error: "Failed to fetch Fitbit data",
-        details: error.message,
-        type: error.constructor.name,
-      }),
-    };
-  }
-};
-
-// Scheduled handler for token refresh
-const scheduledHandler = async (event) => {
-  try {
-    console.log("Running scheduled token refresh");
-    await refreshAccessToken();
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: "Token refresh successful" }),
-    };
-  } catch (error) {
-    console.error("Scheduled refresh failed:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Token refresh failed" }),
-    };
-  }
-};
-
 exports.handler = async (event) => {
-  // Force immediate logging at the start
   console.log("========== FITBIT FETCH START ==========");
   console.log("Request details:", {
     method: event.httpMethod,
@@ -174,7 +61,7 @@ exports.handler = async (event) => {
   });
 
   try {
-    // Check environment variables immediately
+    // Check environment variables
     const envCheck = {
       hasAccessToken: !!process.env.FITBIT_ACCESS_TOKEN,
       hasClientId: !!process.env.FITBIT_CLIENT_ID,
@@ -186,7 +73,6 @@ exports.handler = async (event) => {
 
     console.log("Environment check:", envCheck);
 
-    // If any required variables are missing, fail fast
     const missingVars = Object.entries(envCheck)
       .filter(([_, exists]) => !exists)
       .map(([name]) => name);
@@ -197,21 +83,47 @@ exports.handler = async (event) => {
       );
     }
 
-    // Continue with normal request handling
-    if (event.httpMethod === "GET") {
-      return apiHandler(event);
-    } else if (event.type === "scheduled") {
-      return scheduledHandler(event);
+    const endpoint = event.queryStringParameters?.endpoint;
+    if (!endpoint) {
+      throw new Error("No endpoint specified");
     }
 
-    throw new Error(`Unsupported request type: ${event.httpMethod}`);
-  } catch (error) {
-    console.error("========== FUNCTION ERROR ==========");
-    console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-    });
+    const makeRequest = async (token) => {
+      const response = await fetch(
+        `https://api.fitbit.com/1/user/-/${endpoint}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
 
+      if (response.status === 401) {
+        console.log("Token expired, refreshing...");
+        const newToken = await refreshAccessToken();
+        return makeRequest(newToken); // Retry with new token
+      }
+
+      if (!response.ok) {
+        throw new Error(`Fitbit API responded with status ${response.status}`);
+      }
+
+      return response.json();
+    };
+
+    const data = await makeRequest(process.env.FITBIT_ACCESS_TOKEN);
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify(data),
+    };
+  } catch (error) {
+    console.error("Error in fitbit-fetch:", error);
     return {
       statusCode: 500,
       headers: {
@@ -219,11 +131,10 @@ exports.handler = async (event) => {
         "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({
-        error: "Function execution failed",
-        details: error.message,
+        error: error.message,
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
       }),
     };
-  } finally {
-    console.log("========== FITBIT FETCH END ==========");
   }
 };
