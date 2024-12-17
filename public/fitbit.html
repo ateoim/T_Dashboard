@@ -103,8 +103,7 @@
           </div>
           <div class="stat-info">
             <h3>Daily Steps</h3>
-            <p id="daily-steps" class="stat-value">Loading...</p>
-            <p class="stat-error" style="display: none">Unable to load data</p>
+            <p id="daily-steps">Loading...</p>
           </div>
         </div>
 
@@ -126,7 +125,7 @@
           </div>
           <div class="stat-info">
             <h3>Active Calories</h3>
-            <p id="calories">Loading...</p>
+            <p id="active-calories">Loading...</p>
           </div>
         </div>
 
@@ -148,7 +147,7 @@
           </div>
           <div class="stat-info">
             <h3>Today's Distance</h3>
-            <p id="daily-distance">Loading...</p>
+            <p id="todays-distance">Loading...</p>
           </div>
         </div>
 
@@ -158,44 +157,35 @@
             <i class="fas fa-road"></i>
           </div>
           <div class="stat-info">
-            <h3 id="total-distance-title">Total Distance (since Dec 15)</h3>
+            <h3>Total Distance (since Dec 15)</h3>
             <p id="total-distance">Loading...</p>
             <small id="last-updated" class="update-timestamp"></small>
           </div>
         </div>
 
-        <!-- Health Summary -->
-        <div class="stat-card summary-card">
+        <!-- Health Summary Card -->
+        <div class="stat-card health-summary">
           <div class="stat-icon">
             <i class="fas fa-chart-line"></i>
           </div>
           <div class="stat-info">
             <h3>Health Summary</h3>
-            <div class="summary-content">
-              <p class="summary-item">
-                <i class="fas fa-bolt"></i>
-                <span id="energy-efficiency">Loading...</span>
-              </p>
-              <p class="summary-item">
-                <i class="fas fa-sync"></i>
-                <span id="rhythm-score">Loading...</span>
-              </p>
-              <p class="summary-item">
-                <i class="fas fa-chart-line"></i>
-                <span id="movement-consistency">Loading...</span>
-              </p>
+            <div class="summary-stats">
+              <p id="calories-per-step">Loading...</p>
+              <p id="daily-rhythm">Loading...</p>
+              <p id="active-time">Loading...</p>
             </div>
           </div>
         </div>
 
-        <!-- Add this new card after the Health Summary card -->
-        <div class="stat-card chart-card">
+        <!-- Activity Trends Card -->
+        <div class="stat-card activity-trends">
           <div class="stat-icon">
             <i class="fas fa-chart-area"></i>
           </div>
           <div class="stat-info">
             <h3>7-Day Activity Trends</h3>
-            <canvas id="activityChart"></canvas>
+            <canvas id="activity-chart"></canvas>
           </div>
         </div>
       </div>
