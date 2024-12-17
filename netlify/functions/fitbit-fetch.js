@@ -69,14 +69,25 @@ const refreshAccessToken = async () => {
 // Main handler for API requests
 const apiHandler = async (event) => {
   try {
+    if (!event.queryStringParameters?.endpoint) {
+      console.error("No endpoint provided in query parameters");
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "No endpoint provided" }),
+      };
+    }
+
     let accessToken = process.env.FITBIT_ACCESS_TOKEN;
 
-    // Add logging for debugging
-    console.log(
-      "Starting request with endpoint:",
-      event.queryStringParameters?.endpoint
-    );
-    console.log("Access token exists:", !!accessToken);
+    console.log("Debug info:", {
+      hasAccessToken: !!accessToken,
+      endpoint: event.queryStringParameters.endpoint,
+      hasClientId: !!process.env.FITBIT_CLIENT_ID,
+      hasClientSecret: !!process.env.FITBIT_CLIENT_SECRET,
+      hasRefreshToken: !!process.env.FITBIT_REFRESH_TOKEN,
+      hasNetlifySiteId: !!process.env.NETLIFY_SITE_ID,
+      hasNetlifyApiToken: !!process.env.NETLIFY_API_TOKEN,
+    });
 
     const fetchWithToken = async (token) => {
       const url = `https://api.fitbit.com/1/user/-/${event.queryStringParameters.endpoint}`;
@@ -115,7 +126,11 @@ const apiHandler = async (event) => {
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Handler error:", error);
+    console.error("Handler error:", {
+      message: error.message,
+      stack: error.stack,
+      type: error.constructor.name,
+    });
     return {
       statusCode: 500,
       headers: {
@@ -124,8 +139,8 @@ const apiHandler = async (event) => {
       },
       body: JSON.stringify({
         error: "Failed to fetch Fitbit data",
-        message: error.message,
-        stack: error.stack,
+        details: error.message,
+        type: error.constructor.name,
       }),
     };
   }
