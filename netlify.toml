@@ -15,4 +15,4 @@
 [functions]
   directory = "netlify/functions"
   [functions.fitbit-fetch]
-    schedule = "0 0 */13 * *"  # Runs every 13 days at midnight
+    schedule = "0 0 */13 * *"

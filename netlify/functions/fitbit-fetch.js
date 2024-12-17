@@ -165,10 +165,49 @@ const scheduledHandler = async (event) => {
 };
 
 exports.handler = async (event) => {
-  // Check if this is a scheduled event
-  if (event.type === "scheduled") {
-    return scheduledHandler(event);
+  console.log(
+    "Function triggered with event type:",
+    event.type || "regular request"
+  );
+  console.log("Query parameters:", event.queryStringParameters);
+
+  try {
+    // Check if this is a scheduled event
+    if (event.type === "scheduled") {
+      console.log("Running scheduled token refresh");
+      return scheduledHandler(event);
+    }
+
+    // For regular API requests, verify environment variables first
+    console.log("Environment check:", {
+      hasAccessToken: !!process.env.FITBIT_ACCESS_TOKEN,
+      hasClientId: !!process.env.FITBIT_CLIENT_ID,
+      hasClientSecret: !!process.env.FITBIT_CLIENT_SECRET,
+      hasRefreshToken: !!process.env.FITBIT_REFRESH_TOKEN,
+      hasNetlifySiteId: !!process.env.NETLIFY_SITE_ID,
+      hasNetlifyApiToken: !!process.env.NETLIFY_API_TOKEN,
+    });
+
+    // Handle regular request
+    return apiHandler(event);
+  } catch (error) {
+    console.error("Top-level error:", {
+      message: error.message,
+      stack: error.stack,
+      type: error.constructor.name,
+    });
+
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "Function execution failed",
+        details: error.message,
+        type: error.constructor.name,
+      }),
+    };
   }
-  // Otherwise handle as normal API request
-  return apiHandler(event);
 };
