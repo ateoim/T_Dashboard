@@ -18,8 +18,8 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 404
+  to = "/home.html"
+  status = 200
 
 [functions.fitbit-fetch]
   schedule = "0 0 */13 * *"
