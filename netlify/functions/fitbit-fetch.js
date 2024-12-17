@@ -2,94 +2,67 @@ const fetch = require("node-fetch");
 
 let requestCount = 0;
 
-exports.handler = async function (event, context) {
-  requestCount++;
-  console.log(`API Request #${requestCount} in this function instance`);
-  // Add detailed logging
-  console.log("Function started", {
-    queryParams: event.queryStringParameters,
-    hasToken: !!process.env.FITBIT_ACCESS_TOKEN,
-    tokenFirstChars: process.env.FITBIT_ACCESS_TOKEN
-      ? process.env.FITBIT_ACCESS_TOKEN.substring(0, 10) + "..."
-      : "none",
+const refreshAccessToken = async () => {
+  const response = await fetch("https://api.fitbit.com/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(
+        `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
+      ).toString("base64")}`,
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: process.env.FITBIT_REFRESH_TOKEN,
+    }),
   });
 
-  const { endpoint } = event.queryStringParameters || {};
-  const accessToken = process.env.FITBIT_ACCESS_TOKEN;
-
-  if (!endpoint) {
-    console.log("No endpoint provided");
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: "No endpoint specified" }),
-    };
+  if (!response.ok) {
+    throw new Error("Failed to refresh token");
   }
 
-  if (!accessToken) {
-    console.log("No access token found in environment");
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Access token not configured" }),
-    };
-  }
+  const data = await response.json();
+  return data.access_token;
+};
 
+const handler = async (event) => {
   try {
-    const url = `https://api.fitbit.com/1/user/-/${endpoint}`;
-    console.log("Attempting Fitbit API request to:", url);
+    let accessToken = process.env.FITBIT_ACCESS_TOKEN;
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken.trim()}`,
-        Accept: "application/json",
-      },
-    });
+    const fetchWithToken = async (token) => {
+      const response = await fetch(
+        `https://api.fitbit.com/1/user/-/${event.queryStringParameters.endpoint}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Fitbit API error response:", {
-        status: response.status,
-        statusText: response.statusText,
-        errorData: errorData,
-        tokenLength: accessToken.length,
-        tokenStart: accessToken.substring(0, 20),
-        tokenEnd: accessToken.substring(accessToken.length - 20),
-        headers: Object.fromEntries(response.headers.entries()),
-      });
-      return {
-        statusCode: response.status,
-        body: JSON.stringify({
-          error: "Fitbit API error",
-          details: errorData,
-          status: response.status,
-          statusText: response.statusText,
-        }),
-      };
-    }
+      if (response.status === 401) {
+        // Token expired, refresh and try again
+        const newToken = await refreshAccessToken();
+        // Retry the request with new token
+        return fetchWithToken(newToken);
+      }
 
+      return response;
+    };
+
+    const response = await fetchWithToken(accessToken);
     const data = await response.json();
-    console.log("Successful response received");
 
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Function error:", {
-      message: error.message,
-      stack: error.stack,
-    });
+    console.error("Error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        error: "Internal server error",
-        details: error.message,
-      }),
+      body: JSON.stringify({ error: "Failed to fetch Fitbit data" }),
     };
   }
 };
+
+exports.handler = handler;
