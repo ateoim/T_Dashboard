@@ -1,20 +1,19 @@
 [build]
   publish = "public"
   functions = "netlify/functions"
+  command = "npm run build"
 
 [functions]
   node_bundler = "esbuild"
   included_files = ["netlify/functions/**"]
 
-# Removed invalid redirect that starts with a reserved path
-# [[redirects]]
-#   from = "/.netlify/functions/*"
-#   to = "/.netlify/functions/:splat"
-#   status = 200
-
-[functions.fitbit-fetch]
-  schedule = "0 0 */13 * *"
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
 
 [dev]
-  framework = "#custom"
-  functionsPort = 8888
+  framework = "#static"
+  targetPort = 8888
+  port = 3000
+  publish = "public"
