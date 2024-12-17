@@ -29,10 +29,13 @@ const refreshAccessToken = async () => {
       console.error("Token refresh failed:", {
         status: response.status,
         statusText: response.statusText,
-        errorData,
+        errorDetails: errorData.errors[0],
+        refreshToken: process.env.FITBIT_REFRESH_TOKEN.substring(0, 10) + "...",
       });
       throw new Error(
-        `Failed to refresh token: ${response.status} ${response.statusText}`
+        `Failed to refresh token: ${response.status} ${response.statusText} - ${
+          errorData.errors[0]?.message || "Unknown error"
+        }`
       );
     }
 
