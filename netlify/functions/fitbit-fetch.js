@@ -29,38 +29,62 @@ const handler = async (event) => {
   try {
     let accessToken = process.env.FITBIT_ACCESS_TOKEN;
 
+    // Add logging for debugging
+    console.log(
+      "Starting request with endpoint:",
+      event.queryStringParameters?.endpoint
+    );
+    console.log("Access token exists:", !!accessToken);
+
     const fetchWithToken = async (token) => {
-      const response = await fetch(
-        `https://api.fitbit.com/1/user/-/${event.queryStringParameters.endpoint}`,
-        {
+      const url = `https://api.fitbit.com/1/user/-/${event.queryStringParameters.endpoint}`;
+      console.log("Fetching from:", url);
+
+      try {
+        const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        });
+
+        if (response.status === 401) {
+          console.log("Token expired, attempting refresh");
+          const newToken = await refreshAccessToken();
+          return fetchWithToken(newToken);
         }
-      );
 
-      if (response.status === 401) {
-        // Token expired, refresh and try again
-        const newToken = await refreshAccessToken();
-        // Retry the request with new token
-        return fetchWithToken(newToken);
+        const data = await response.json();
+        console.log("Response data:", data);
+        return data;
+      } catch (fetchError) {
+        console.error("Fetch error:", fetchError);
+        throw fetchError;
       }
-
-      return response;
     };
 
-    const response = await fetchWithToken(accessToken);
-    const data = await response.json();
+    const data = await fetchWithToken(accessToken);
 
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Handler error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch Fitbit data" }),
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        error: "Failed to fetch Fitbit data",
+        message: error.message,
+        stack: error.stack,
+      }),
     };
   }
 };
