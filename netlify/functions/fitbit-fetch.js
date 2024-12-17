@@ -3,26 +3,45 @@ const fetch = require("node-fetch");
 let requestCount = 0;
 
 const refreshAccessToken = async () => {
-  const response = await fetch("https://api.fitbit.com/oauth2/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${Buffer.from(
-        `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
-      ).toString("base64")}`,
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: process.env.FITBIT_REFRESH_TOKEN,
-    }),
-  });
+  try {
+    console.log("Attempting to refresh token with:", {
+      clientIdExists: !!process.env.FITBIT_CLIENT_ID,
+      clientSecretExists: !!process.env.FITBIT_CLIENT_SECRET,
+      refreshTokenExists: !!process.env.FITBIT_REFRESH_TOKEN,
+    });
 
-  if (!response.ok) {
-    throw new Error("Failed to refresh token");
+    const response = await fetch("https://api.fitbit.com/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
+        ).toString("base64")}`,
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: process.env.FITBIT_REFRESH_TOKEN,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Token refresh failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+      });
+      throw new Error(
+        `Failed to refresh token: ${response.status} ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error) {
+    console.error("Token refresh error:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.access_token;
 };
 
 const handler = async (event) => {
