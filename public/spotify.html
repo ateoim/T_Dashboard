@@ -86,17 +86,17 @@
       </header>
 
       <div class="stats-container">
-        <!-- Now Playing (Full Width) -->
-        <div class="stat-card now-playing-card">
+        <!-- Now Playing -->
+        <div class="now-playing-card">
           <div class="now-playing-content">
             <div class="album-art">
               <img id="now-playing-art" src="placeholder.jpg" alt="Album Art" />
-              <button class="play-button" id="now-playing-button">
+              <button class="play-button">
                 <i class="fas fa-play"></i>
               </button>
             </div>
             <div class="track-info">
-              <h3>Currently Playing</h3>
+              <h2>Currently Playing</h2>
               <p id="now-playing" class="track-name">Loading...</p>
               <p id="now-playing-artist" class="artist-name"></p>
             </div>
@@ -105,24 +105,22 @@
 
         <div class="stats-grid">
           <!-- Top Track -->
-          <div class="stat-card track-card">
+          <div class="track-card">
             <div class="card-content">
+              <h3>Top Track This Week</h3>
               <div class="album-art">
                 <img id="top-track-art" src="placeholder.jpg" alt="Album Art" />
                 <button class="play-button">
                   <i class="fas fa-play"></i>
                 </button>
               </div>
-              <div class="track-info">
-                <h3>Top Track This Week</h3>
-                <p id="top-track" class="track-name">Loading...</p>
-                <p id="top-track-artist" class="artist-name"></p>
-              </div>
+              <p id="top-track" class="track-name">Loading...</p>
+              <p id="top-track-artist" class="artist-name"></p>
             </div>
           </div>
 
           <!-- Recently Played -->
-          <div class="stat-card">
+          <div class="recent-tracks-card">
             <h3>Recently Played</h3>
             <div id="recent-tracks" class="track-list">
               <!-- Tracks will be inserted here -->
@@ -130,23 +128,11 @@
           </div>
 
           <!-- Top Artists -->
-          <div class="stat-card">
+          <div class="top-artists-card">
             <h3>Top Artists</h3>
             <div id="top-artists" class="artist-grid">
               <!-- Artists will be inserted here -->
             </div>
-          </div>
-        </div>
-
-        <!-- Collaborative Playlist -->
-        <div class="stat-card playlist-card">
-          <div class="stat-icon">
-            <i class="fas fa-music"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Tom's Playlist</h3>
-            <div id="playlistViewer"></div>
-            <div id="playlistInvite"></div>
           </div>
         </div>
       </div>

@@ -215,12 +215,11 @@ body {
 /* Updated Fitbit Dashboard Specific Styles */
 .stats-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  padding: 15px;
-  width: 100%;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2.5rem;
+  padding: 2.5rem;
   max-width: 1400px;
-  margin: 10px auto;
+  margin: 0 auto;
 }
 
 .stats-header {
@@ -251,10 +250,10 @@ body {
 }
 
 .stats-grid {
+  grid-column: span 12;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
 }
 
 .stat-card {
@@ -2419,60 +2418,114 @@ a {
 
 /* Now Playing Card */
 .now-playing-card {
-  grid-column: 1 / -1;
-  background: linear-gradient(135deg, #1db954 0%, #191414 100%);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  grid-column: span 12;
+  background: linear-gradient(
+    135deg,
+    rgba(29, 185, 84, 0.8) 0%,
+    rgba(25, 20, 20, 0.9) 100%
+  );
+  border-radius: 20px;
+  padding: 3rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1rem;
 }
 
 .now-playing-content {
   display: flex;
-  gap: 3rem;
+  gap: 4rem;
   align-items: center;
-  width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .now-playing-card .album-art {
-  width: 280px;
-  height: 280px;
-  flex-shrink: 0;
+  width: 300px;
+  height: 300px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
-/* Top Track Card */
+.now-playing-card .album-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* Stats Grid Refinements */
+.stats-grid {
+  grid-column: span 12;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+/* Top Track Card Refinements */
 .track-card {
   background: rgba(40, 40, 40, 0.7);
-  padding: 1.5rem;
+  border-radius: 20px;
+  padding: 2.5rem;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.track-card .card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .track-card .album-art {
-  width: 200px;
-  height: 200px;
-  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 240px;
+  height: 240px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
 }
 
-/* Recently Played Section */
+.track-card .album-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* Recently Played Refinements */
+.recent-tracks-card {
+  background: rgba(40, 40, 40, 0.7);
+  border-radius: 20px;
+  padding: 2.5rem;
+  height: 100%;
+}
+
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
 .track-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 1.5rem;
+  gap: 1.25rem;
   padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  margin-bottom: 1rem;
 }
 
 .track-art {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 4px;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
   overflow: hidden;
+  position: relative;
 }
 
 .track-art img {
@@ -2481,94 +2534,104 @@ a {
   object-fit: cover;
 }
 
-.track-art .play-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  width: 40px;
-  height: 40px;
-  background: #1db954;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+/* Top Artists Refinements */
+.top-artists-card {
+  background: rgba(40, 40, 40, 0.7);
+  border-radius: 20px;
+  padding: 2.5rem;
+  height: 100%;
 }
 
-.track-item:hover .play-button {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
-.track-details {
+.artist-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.track-meta {
-  color: var(--text-grey);
-  font-size: 0.9rem;
-}
-
-/* Top Artists Section */
-.artist-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  padding: 1rem;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 .artist-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   transition: all 0.3s ease;
 }
 
+.artist-image {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Card Headers */
+.card-header {
+  margin-bottom: 1.5rem;
+  color: var(--text-white);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* Hover Effects */
+.track-item:hover,
 .artist-item:hover {
   background: rgba(29, 185, 84, 0.1);
-  transform: translateY(-4px);
+  transform: translateX(8px);
 }
 
-.artist-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-bottom: 0.5rem;
-}
-
-.artist-name {
-  font-size: 1.1rem;
-  font-weight: 500;
+.album-art:hover img {
+  transform: scale(1.05);
 }
 
 /* Responsive Adjustments */
-@media (max-width: 1200px) {
-  .now-playing-content {
-    gap: 2rem;
+@media (max-width: 1400px) {
+  .now-playing-card .album-art {
+    width: 260px;
+    height: 260px;
   }
 
-  .now-playing-card .album-art {
-    width: 220px;
-    height: 220px;
+  .track-card .album-art {
+    max-width: 200px;
+    height: 200px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .top-artists-card {
+    grid-column: span 2;
   }
 }
 
 @media (max-width: 768px) {
+  .stats-container {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
   .now-playing-content {
     flex-direction: column;
     text-align: center;
+    gap: 2rem;
   }
 
-  .track-item {
+  .stats-grid {
     grid-template-columns: 1fr;
-    text-align: center;
   }
 
-  .track-art {
-    margin: 0 auto;
+  .track-card,
+  .recent-tracks-card,
+  .top-artists-card {
+    grid-column: span 1;
+  }
+
+  .artist-item {
+    flex-direction: row;
+    text-align: left;
   }
 }
