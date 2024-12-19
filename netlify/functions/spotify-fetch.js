@@ -25,6 +25,15 @@ export const handler = async (event) => {
     const data = await response.json();
     console.log("Spotify API response status:", response.status);
 
+    if (response.status === 401) {
+      console.error("Token expired or invalid");
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: "Token expired" }),
+      };
+    }
+
     return {
       statusCode: response.status,
       headers,

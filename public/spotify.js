@@ -22,14 +22,24 @@ async function updateDashboard() {
     console.log("Now playing response:", nowPlayingData);
 
     const nowPlaying = document.getElementById("now-playing");
+    const nowPlayingArt = document.getElementById("now-playing-art");
+    const nowPlayingArtist = document.getElementById("now-playing-artist");
+
     if (nowPlayingData?.item) {
-      document.getElementById("now-playing-art").src =
-        nowPlayingData.item.album.images[0].url;
+      nowPlayingArt.src = nowPlayingData.item.album.images[0].url;
       nowPlaying.textContent = nowPlayingData.item.name;
-      document.getElementById("now-playing-artist").textContent =
-        nowPlayingData.item.artists[0].name;
+      nowPlayingArtist.textContent = nowPlayingData.item.artists[0].name;
+
+      // Show the now playing section
+      document.querySelector(".now-playing-card").style.display = "flex";
     } else {
-      nowPlaying.textContent = "Not currently playing";
+      // Hide the now playing section if nothing is playing
+      document.querySelector(".now-playing-card").style.display = "none";
+
+      // Or show a message
+      // nowPlaying.textContent = "Not currently playing";
+      // nowPlayingArt.src = 'placeholder.jpg';
+      // nowPlayingArtist.textContent = '';
     }
 
     // Top Track (weekly)
@@ -61,10 +71,20 @@ async function updateDashboard() {
         .map(
           (item) => `
         <div class="track-item">
-          <img src="${item.track.album.images[2].url}" alt="Album art">
+          <div class="track-art">
+            <img src="${item.track.album.images[0].url}" alt="Album art">
+            <button class="play-button">
+              <i class="fas fa-play"></i>
+            </button>
+          </div>
           <div class="track-details">
             <span class="track-name">${item.track.name}</span>
             <span class="artist-name">${item.track.artists[0].name}</span>
+          </div>
+          <div class="track-meta">
+            <span class="track-time">${new Date(
+              item.played_at
+            ).toLocaleTimeString()}</span>
           </div>
         </div>
       `
@@ -84,10 +104,17 @@ async function updateDashboard() {
 
     const topArtists = document.getElementById("top-artists");
     if (artistData?.items) {
-      const artists = artistData.items
-        .map((artist) => artist.name)
-        .join("<br>");
-      topArtists.innerHTML = artists;
+      const artistsHTML = artistData.items
+        .map(
+          (artist) => `
+        <div class="artist-item">
+          <img src="${artist.images[0].url}" alt="${artist.name}" class="artist-image">
+          <span class="artist-name">${artist.name}</span>
+        </div>
+      `
+        )
+        .join("");
+      topArtists.innerHTML = artistsHTML;
     } else {
       topArtists.textContent = "Error loading top artists";
       console.error("Top artists data:", artistData);
@@ -99,6 +126,8 @@ async function updateDashboard() {
     ).textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
   } catch (error) {
     console.error("Dashboard update error:", error);
+    // Hide the now playing section on error
+    document.querySelector(".now-playing-card").style.display = "none";
   }
 }
 

@@ -39,4 +39,18 @@ async function getSpotifyTokens(code) {
 
 const code =
   "AQAKvNuM_35MP5tH6VwfPlUqNFLGv3bBixTeCKV8NLZ6_m9ZKUoYZKF6K17MhU7hlkyRRR4WHq1yhURgDUTAGA4pUPnENUVF4cHG7T1WQaNJrBJbS1hjHEQ72oj33EvHwiDn55KOgFerfNWc50tNbkevjUe_BsT9OPjkbL5csN055kKDAzZ-FhlwQh4ROb5EIPE9LNsPzkbHJiaSZCng2-ZhtIZ_6Fdwo5MMp95rUYEZO9GbSqo7bR2S0Mzh9pb7OoXRw8LnkDB4ITGtNnY6_YnYpz4j0_Nhz7F_l6FveE0PokxH59pq5HQ";
+
+// Add user-read-playback-state scope
+const scopes = [
+  "user-read-recently-played",
+  "user-top-read",
+  "playlist-modify-public",
+  "playlist-modify-private",
+  "user-read-playback-state", // Add this scope
+  "user-read-currently-playing", // And this scope
+].join("%20");
+
+// Use these scopes in your authorization URL
+const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${redirectUri}&scope=${scopes}`;
+
 getSpotifyTokens(code);
