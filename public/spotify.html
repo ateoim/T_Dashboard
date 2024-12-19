@@ -86,47 +86,55 @@
       </header>
 
       <div class="stats-container">
-        <!-- Now Playing -->
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-play"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Now Playing</h3>
-            <p id="now-playing">Loading...</p>
-          </div>
-        </div>
-
-        <!-- Top Track -->
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-crown"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Top Track</h3>
-            <p id="top-track">Loading...</p>
+        <!-- Now Playing (Full Width) -->
+        <div class="stat-card now-playing-card">
+          <div class="now-playing-content">
+            <div class="album-art">
+              <img id="now-playing-art" src="placeholder.jpg" alt="Album Art" />
+              <button class="play-button" id="now-playing-button">
+                <i class="fas fa-play"></i>
+              </button>
+            </div>
+            <div class="track-info">
+              <h3>Currently Playing</h3>
+              <p id="now-playing" class="track-name">Loading...</p>
+              <p id="now-playing-artist" class="artist-name"></p>
+            </div>
           </div>
         </div>
 
-        <!-- Recently Played -->
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-history"></i>
+        <div class="stats-grid">
+          <!-- Top Track -->
+          <div class="stat-card track-card">
+            <div class="card-content">
+              <div class="album-art">
+                <img id="top-track-art" src="placeholder.jpg" alt="Album Art" />
+                <button class="play-button">
+                  <i class="fas fa-play"></i>
+                </button>
+              </div>
+              <div class="track-info">
+                <h3>Top Track This Week</h3>
+                <p id="top-track" class="track-name">Loading...</p>
+                <p id="top-track-artist" class="artist-name"></p>
+              </div>
+            </div>
           </div>
-          <div class="stat-info">
+
+          <!-- Recently Played -->
+          <div class="stat-card">
             <h3>Recently Played</h3>
-            <div id="recent-tracks" class="track-list">Loading...</div>
+            <div id="recent-tracks" class="track-list">
+              <!-- Tracks will be inserted here -->
+            </div>
           </div>
-        </div>
 
-        <!-- Top Artists -->
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <div class="stat-info">
+          <!-- Top Artists -->
+          <div class="stat-card">
             <h3>Top Artists</h3>
-            <div id="top-artists" class="artist-list">Loading...</div>
+            <div id="top-artists" class="artist-grid">
+              <!-- Artists will be inserted here -->
+            </div>
           </div>
         </div>
 
