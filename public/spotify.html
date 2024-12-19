@@ -2,17 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Access-Control-Allow-Origin" content="*" />
-    <meta
-      http-equiv="Access-Control-Allow-Methods"
-      content="GET, POST, OPTIONS"
-    />
-    <meta
-      http-equiv="Access-Control-Allow-Headers"
-      content="Content-Type, Authorization"
-    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tom Daily Health Data</title>
+    <title>Tom's Music Stats</title>
     <!-- Modern Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,7 +17,6 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <aside class="sidebar">
@@ -36,11 +26,11 @@
           <i class="fas fa-home"></i>
           <span>Home</span>
         </a>
-        <a href="fitbit.html" class="sidebar-link active" id="fitbit-link">
+        <a href="fitbit.html" class="sidebar-link" id="fitbit-link">
           <i class="fas fa-heartbeat"></i>
           <span>Fitbit</span>
         </a>
-        <a href="spotify.html" class="sidebar-link" id="spotify-link">
+        <a href="spotify.html" class="sidebar-link active" id="spotify-link">
           <i class="fab fa-spotify"></i>
           <span>Spotify</span>
         </a>
@@ -89,108 +79,71 @@
 
     <main class="container">
       <header class="page-header">
-        <h1>Tom-Daily-Biological-Data</h1>
-        <p id="last-data-update" class="update-timestamp">
+        <h1>Tom's Music Stats</h1>
+        <p id="last-updated" class="update-timestamp">
           Last updated: Loading...
         </p>
       </header>
 
       <div class="stats-container">
-        <!-- Daily Steps -->
+        <!-- Now Playing -->
         <div class="stat-card">
           <div class="stat-icon">
-            <i class="fas fa-walking"></i>
+            <i class="fas fa-play"></i>
           </div>
           <div class="stat-info">
-            <h3>Daily Steps</h3>
-            <p id="daily-steps">Loading...</p>
+            <h3>Now Playing</h3>
+            <p id="now-playing">Loading...</p>
           </div>
         </div>
 
-        <!-- Heart Rate -->
+        <!-- Top Track -->
         <div class="stat-card">
           <div class="stat-icon">
-            <i class="fas fa-heartbeat"></i>
+            <i class="fas fa-crown"></i>
           </div>
           <div class="stat-info">
-            <h3>Heart Rate</h3>
-            <p id="heart-rate">Loading...</p>
+            <h3>Top Track</h3>
+            <p id="top-track">Loading...</p>
           </div>
         </div>
 
-        <!-- Calories -->
+        <!-- Recently Played -->
         <div class="stat-card">
           <div class="stat-icon">
-            <i class="fas fa-fire"></i>
+            <i class="fas fa-history"></i>
           </div>
           <div class="stat-info">
-            <h3>Active Calories</h3>
-            <p id="active-calories">Loading...</p>
+            <h3>Recently Played</h3>
+            <div id="recent-tracks" class="track-list">Loading...</div>
           </div>
         </div>
 
-        <!-- Sleep -->
+        <!-- Top Artists -->
         <div class="stat-card">
           <div class="stat-icon">
-            <i class="fas fa-moon"></i>
+            <i class="fas fa-users"></i>
           </div>
           <div class="stat-info">
-            <h3>Sleep Duration</h3>
-            <p id="sleep-duration">Loading...</p>
+            <h3>Top Artists</h3>
+            <div id="top-artists" class="artist-list">Loading...</div>
           </div>
         </div>
 
-        <!-- Daily Distance -->
-        <div class="stat-card">
+        <!-- Collaborative Playlist -->
+        <div class="stat-card playlist-card">
           <div class="stat-icon">
-            <i class="fas fa-route"></i>
+            <i class="fas fa-music"></i>
           </div>
           <div class="stat-info">
-            <h3>Today's Distance</h3>
-            <p id="todays-distance">Loading...</p>
-          </div>
-        </div>
-
-        <!-- Total Distance -->
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-road"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Total Distance (since Dec 15)</h3>
-            <p id="total-distance">Loading...</p>
-            <small id="last-updated" class="update-timestamp"></small>
-          </div>
-        </div>
-
-        <!-- Health Summary Card -->
-        <div class="stat-card health-summary">
-          <div class="stat-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div class="stat-info">
-            <h3>Health Summary</h3>
-            <div class="summary-stats">
-              <p id="calories-per-step">Loading...</p>
-              <p id="daily-rhythm">Loading...</p>
-              <p id="active-time">Loading...</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Activity Trends Card -->
-        <div class="stat-card activity-trends">
-          <div class="stat-icon">
-            <i class="fas fa-chart-area"></i>
-          </div>
-          <div class="stat-info">
-            <h3>7-Day Activity Trends</h3>
-            <canvas id="activity-chart"></canvas>
+            <h3>Tom's Playlist</h3>
+            <div id="playlistViewer"></div>
+            <div id="playlistInvite"></div>
           </div>
         </div>
       </div>
     </main>
 
-    <script src="fitbit.js"></script>
+    <script src="spotify.js"></script>
   </body>
 </html>
