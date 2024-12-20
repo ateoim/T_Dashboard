@@ -2543,9 +2543,9 @@ a {
 }
 
 .artist-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
   margin-top: 1.5rem;
 }
 
@@ -2560,10 +2560,25 @@ a {
 }
 
 .artist-image {
-  width: 72px;
-  height: 72px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.artist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.artist-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Card Headers */
@@ -2606,6 +2621,10 @@ a {
   .top-artists-card {
     grid-column: span 2;
   }
+
+  .artist-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2633,5 +2652,10 @@ a {
   .artist-item {
     flex-direction: row;
     text-align: left;
+  }
+
+  .artist-image {
+    width: 80px;
+    height: 80px;
   }
 }

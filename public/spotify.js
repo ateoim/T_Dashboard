@@ -4,8 +4,9 @@ async function fetchSpotifyData(endpoint) {
     const response = await fetch(
       `/.netlify/functions/spotify-fetch?endpoint=${endpoint}`
     );
-    if (!response.ok) throw new Error("Spotify API error");
-    return await response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Spotify API error");
+    return data;
   } catch (error) {
     console.error("Error:", error);
     return null;
@@ -134,3 +135,18 @@ async function updateDashboard() {
 // Initial load and refresh every minute
 updateDashboard();
 setInterval(updateDashboard, 60000);
+
+// Add to top of file
+async function checkAuth() {
+  const response = await fetchSpotifyData("me");
+  if (response?.error) {
+    document.getElementById("spotify-login").style.display = "block";
+    document.querySelector(".stats-container").style.display = "none";
+  } else {
+    document.getElementById("spotify-login").style.display = "none";
+    document.querySelector(".stats-container").style.display = "block";
+  }
+}
+
+// Call this when page loads
+window.addEventListener("load", checkAuth);

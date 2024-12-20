@@ -1,30 +1,22 @@
 import fetch from "node-fetch";
 
 const refreshAccessToken = async () => {
-  console.log("Refreshing access token...");
-
   try {
-    const authString = Buffer.from(
-      `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
-    ).toString("base64");
-
-    console.log("Using client ID:", process.env.FITBIT_CLIENT_ID);
-
     const response = await fetch("https://api.fitbit.com/oauth2/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${authString}`,
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
+        ).toString("base64")}`,
       },
       body: new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: process.env.FITBIT_REFRESH_TOKEN,
-      }).toString(),
+      }),
     });
 
     const data = await response.json();
-    console.log("Token refresh response:", data);
-
     if (!response.ok) {
       throw new Error(
         `Token refresh failed: ${
@@ -33,7 +25,7 @@ const refreshAccessToken = async () => {
       );
     }
 
-    // Store new tokens in memory for subsequent requests
+    // Store new tokens
     process.env.FITBIT_ACCESS_TOKEN = data.access_token;
     process.env.FITBIT_REFRESH_TOKEN = data.refresh_token;
 
@@ -45,8 +37,6 @@ const refreshAccessToken = async () => {
 };
 
 export const handler = async (event) => {
-  console.log("========== FITBIT FETCH START ==========");
-
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
@@ -64,7 +54,7 @@ export const handler = async (event) => {
         `https://api.fitbit.com/1/user/-/${endpoint}`,
         {
           headers: {
-            Authorization: `Bearer ${process.env.FITBIT_ACCESS_TOKEN}`,
+            Authorization: `Bearer ${token}`,
             Accept: "application/json",
           },
         }
